@@ -1,0 +1,13 @@
+apiVersion: orun.io/v1
+kind: TaskContract
+metadata:
+  name: RW-1
+spec:
+  goal: The Rangewise epic's five design documents — with every seeded jurisdiction's citation, source and verification date — are on main and attached to the epic in Orunbase.
+  affects:
+    - specs/epics/rangewise-pay-range-compliance
+    - tasks
+  doneWhen:
+    - specs/epics/rangewise-pay-range-compliance holds README.md, design.md, implementation-plan.md, risks-and-open-questions.md and IMPLEMENTATION-STATUS.md on main
+    - orun spec list --epic rangewise-pay-range-compliance shows all five documents
+  gates: []
