@@ -31,7 +31,7 @@ recruiter when a live ad stops complying.
 
 | Field | Value |
 |-------|-------|
-| Status | Draft |
+| Status | In progress: RW0 ✅ (#9), RW1 in review |
 | Cluster | **RW** (RW0–RW3) |
 | Owner(s) | `apps/range-worker` (the rules table reader, the check engine, the stored checks, the weekly scan) · `apps/api-edge` (the facade) · `packages/db` (migrations `200`–`220`) · `packages/contracts` + `packages/sdk` (the wire) · `apps/notifications-worker` (the alert templates, RW3) · `apps/web-console-next` (the surface) |
 | Builds on | `cirrus baseline-v12`: organizations as employers or agencies, members as recruiters, the policy engine for who may check, `notifications-worker` for alerts, the audit trail in `events-worker`, api-edge rate limiting, cron triggers |

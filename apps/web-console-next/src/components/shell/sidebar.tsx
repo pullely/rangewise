@@ -9,6 +9,8 @@ import {
   ChevronLeft,
   ChevronRight,
   FolderKanban,
+  ClipboardCheck,
+  Scale,
   Boxes,
   KeyRound,
   Settings,
@@ -34,6 +36,8 @@ import { SidebarOrgSwitcher } from "./sidebar-org-switcher";
 import { SidebarFind } from "./sidebar-find";
 
 const ICONS: Record<string, LucideIcon> = {
+  ClipboardCheck,
+  Scale,
   Building2,
   FolderKanban,
   Boxes,

@@ -65,9 +65,14 @@ export function buildNavSections(scope: NavScope, soloMode: boolean = SOLO_MODE)
         ? [
             // Solo: projects & usage/quota are platform plumbing the B2C user
             // never sees; their surfaces collapse to the Settings (Account) panel.
+            { href: `${orgBase}/pay-checks`, label: "Check an ad", icon: "ClipboardCheck" },
+            { href: `${orgBase}/pay-rules`, label: "Pay rules", icon: "Scale" },
             { href: `${orgBase}/settings`, label: "Settings", icon: "Settings", subPanel: true },
           ]
         : [
+            // The product itself: check an ad, and the rules it is checked against.
+            { href: `${orgBase}/pay-checks`, label: "Check an ad", icon: "ClipboardCheck" },
+            { href: `${orgBase}/pay-rules`, label: "Pay rules", icon: "Scale" },
             { href: `${orgBase}/projects`, label: "Projects", icon: "FolderKanban" },
             { href: `${orgBase}/usage`, label: "Usage & quota", icon: "Gauge" },
             // Opens the dedicated settings panel — flagged so the renderer shows a ›.
