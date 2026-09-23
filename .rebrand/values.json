@@ -1,0 +1,10 @@
+{
+  "reponame": "rangewise",
+  "productname": "Rangewise",
+  "productdomain": "rangewise.app",
+  "subdomain": "nexo-7be",
+  "orunWorkspace": "ws_JR2AVCEP",
+  "githuborg": "pullely",
+  "epicSlug": "infra-baselining",
+  "domain": false
+}
