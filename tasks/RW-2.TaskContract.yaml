@@ -1,0 +1,49 @@
+apiVersion: orun.io/v1
+kind: TaskContract
+metadata:
+  name: RW-2
+spec:
+  goal: A recruiter can read Rangewise's cited, versioned pay-transparency rules table and paste a job ad with its locations, remote area, employer headcount and date to get a pass, fail or review verdict per jurisdiction, each naming the rule that decided it and the statute or official guidance behind it.
+  # Component refs, fully qualified (bare names and paths do not match — runbook
+  # trap 15). identity-worker, membership-worker, api-edge and web-console-next
+  # carry the SOLO_MODE switch (Solo goes off: several recruiters per org). Every
+  # other worker is here for runbook trap 17: this task changes packages/db (the
+  # trap-16 D1 fix and the range context), packages/policy-engine (range.* actions)
+  # and packages/contracts (the notifications allow-list), and a worker only
+  # redeploys when its own component.yaml changes.
+  affects:
+    - default/rangewise/db
+    - default/rangewise/db-tests
+    - default/rangewise/db-migrate
+    - default/rangewise/contracts
+    - default/rangewise/contracts-tests
+    - default/rangewise/sdk
+    - default/rangewise/policy-engine
+    - default/rangewise/policy-engine-tests
+    - default/rangewise/range-worker
+    - default/rangewise/range-worker-tests
+    - default/rangewise/api-edge
+    - default/rangewise/api-edge-tests
+    - default/rangewise/events-worker
+    - default/rangewise/notifications-worker
+    - default/rangewise/identity-worker
+    - default/rangewise/membership-worker
+    - default/rangewise/web-console-next
+    - default/rangewise/web-console-next-tests
+    - default/rangewise/admin-worker
+    - default/rangewise/billing-worker
+    - default/rangewise/config-worker
+    - default/rangewise/integrations-worker
+    - default/rangewise/metering-worker
+    - default/rangewise/policy-worker
+    - default/rangewise/projects-worker
+    - default/rangewise/webhooks-worker
+  doneWhen:
+    - the trap-16 D1 fix (factory/patches/cirrus-d1-fix.patch) is applied, so audited writes and organization create work on D1
+    - migration 200_range_rules is in the manifest, replays (twice) green against node:sqlite, and is applied on stage and prod with nine verified, cited rules
+    - on stage a signed-in user creates an organization (201) and GET pay-rules lists the nine rules with source URLs
+    - a check of "$80,000 – $100,000 per year" with health, 401(k) and PTO benefits in Colorado and New York at headcount 50 passes both
+    - a check of "up to $60,000" with no benefits, remote in the US, fails Colorado with the deciding rule range_bounded citing C.R.S. § 8-5-201(2)
+    - a non-member gets 404 on both routes; a viewer can read the rules but not run a check
+    - tests/range-worker runs the extractor, the evaluator and the HTTP flow over a real SQLite engine and is green in CI
+  gates: []

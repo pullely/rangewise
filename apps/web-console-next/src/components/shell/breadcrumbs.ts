@@ -16,6 +16,8 @@ export interface Crumb {
 
 /** Page labels for org-scoped leaf segments. */
 const SEGMENT_LABELS: Record<string, string> = {
+  "pay-checks": "Check an ad",
+  "pay-rules": "Pay rules",
   projects: "Projects",
   environments: "Environments",
   usage: "Usage & quota",

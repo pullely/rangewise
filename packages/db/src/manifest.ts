@@ -183,5 +183,14 @@ export const manifest: MigrationManifest = {
       description:
         "Connection pointer on the inbound-delivery inbox (nullable connection_id + partial index) — lets the per-connection delivery log scope precisely; attributed by the IG2 cron drain",
     },
+    {
+      id: "200_range_rules",
+      context: "range",
+      path: "200_range_rules/up.sql",
+      checksum:
+        "bfb335f107c0ca21aee5d2b1387be70a263c7417921b6aac72ff689d77ec0864",
+      description:
+        "Pay-transparency rules table (RW1) — the jurisdictions whose rules Rangewise applies to job ads, and one versioned row per rule (effective dates, employer-size threshold, what counts as a compliant range, benefits, remote coverage) seeded with nine verified, cited rows; written only by migrations",
+    },
   ],
 };

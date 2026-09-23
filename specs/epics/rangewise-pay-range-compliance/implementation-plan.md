@@ -11,7 +11,7 @@ one day. RW2 and RW3 land the next day. Each milestone's tests run green
 locally before its pull request opens, because every push to a pull request
 spends mints.
 
-## RW0 — the spec
+## RW0 — the spec ✅
 
 This doc set, merged to `main` and attached to the epic with `orun spec push`.
 

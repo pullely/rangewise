@@ -36,12 +36,17 @@ export function memberPublicId(uuid: string): string {
   return `mem_${uuidToHex(uuid)}`;
 }
 
+export function payCheckPublicId(uuid: string): string {
+  return `rwc_${uuidToHex(uuid)}`;
+}
+
 const SUBJECT_KIND_PREFIX: Record<string, (uuid: string) => string> = {
   organization: orgPublicId,
   project: projectPublicId,
   environment: environmentPublicId,
   invitation: invitationPublicId,
   member: memberPublicId,
+  pay_check: payCheckPublicId,
 };
 
 export function toPublicId(kind: string, rawId: string): string {

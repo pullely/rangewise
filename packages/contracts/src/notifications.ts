@@ -298,6 +298,10 @@ export const NOTIFICATIONS_INTERNAL_ACTOR_VALUES = [
   // The public edge forwards end-user preference reads/updates over the
   // service binding with the subject pinned to the resolved session actor.
   "api-edge",
+  // Rangewise: range-worker emails recruiters when a saved ad's verdict gets
+  // worse (RW3). Listed from RW1 so RW3 adds only templates. Without this
+  // entry notifications-worker refuses its calls with 403.
+  "range-worker",
 ] as const;
 
 export type NotificationsInternalActor =
