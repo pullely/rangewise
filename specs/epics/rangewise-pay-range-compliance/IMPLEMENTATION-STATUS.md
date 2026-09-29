@@ -6,8 +6,8 @@ the code departed from `design.md`.
 | Milestone | State | PR |
 |---|---|---|
 | RW0 — the spec | ✅ merged 85b65da; docs pushed with `orun spec push` | #9 |
-| RW1 — the jurisdiction rules table and a manual check | in review | RW-2 |
-| RW2 — the deterministic check engine | | |
+| RW1 — the jurisdiction rules table and a manual check | ✅ merged e3ff164; `main` deploy run 35922168119 green 66/66; stage smoke green (org 201, pass, fail on `range_bounded` citing C.R.S. § 8-5-201(2), NY `not_applicable` at 3, non-member 404); prod `/health` 200, routes 401, `DEBUG_DELIVERY` false | #10 (RW-2) |
+| RW2 — the deterministic check engine | in review | RW-3 |
 | RW3 — the weekly scan and alerts | | |
 
 ## Departures from the design
