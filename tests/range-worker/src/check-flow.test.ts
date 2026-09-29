@@ -25,7 +25,7 @@ function audit(w: TestWorld): { event_type: string; subject_kind: string; subjec
 
 const PASSING = {
   title: "Senior Accountant",
-  adText: "Compensation: $80,000 – $100,000 per year. Benefits: medical, dental, 401(k), 20 days PTO.",
+  adText: "Compensation: $80,000 – $100,000 per year. Benefits: medical, dental, 401(k), 20 days PTO. To apply, email jobs@acme.example by October 31, 2026.",
   locations: ["US-CO", "us-ny"],
   employeeCount: 50,
 };

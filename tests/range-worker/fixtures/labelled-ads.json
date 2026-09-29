@@ -1,0 +1,1321 @@
+{
+ "checkDate": "2026-09-30",
+ "snippets": [
+  {
+   "id": "us-range-annual",
+   "note": "a bounded annual range",
+   "ad": "Staff Accountant (hybrid). Salary: $80,000 – $100,000 per year.",
+   "locations": [
+    "US-NY"
+   ],
+   "remote": "none",
+   "employeeCount": 50,
+   "expect": {
+    "US-NY": "pass"
+   },
+   "pay": {
+    "kind": "range",
+    "min": 80000,
+    "max": 100000,
+    "period": "year",
+    "currency": "USD"
+   },
+   "stage": true
+  },
+  {
+   "id": "co-complete",
+   "note": "range, benefits, how and when to apply",
+   "ad": "Senior Accountant, Denver. $80,000–$100,000 per year. Benefits: medical, dental and vision insurance, 401(k) with company match, and 15 days of PTO. To apply, submit your resume at careers.example.com by November 15, 2026.",
+   "locations": [
+    "US-CO"
+   ],
+   "remote": "none",
+   "employeeCount": 50,
+   "expect": {
+    "US-CO": "pass"
+   },
+   "stage": true
+  },
+  {
+   "id": "co-no-apply-info",
+   "note": "Colorado: no how/when to apply",
+   "ad": "Senior Accountant, Denver. $80,000–$100,000 per year. Benefits: medical, dental and vision insurance, 401(k) with company match, and 15 days of PTO.",
+   "locations": [
+    "US-CO"
+   ],
+   "remote": "none",
+   "employeeCount": 50,
+   "expect": {
+    "US-CO": "review"
+   },
+   "deciding": {
+    "US-CO": "apply_info"
+   }
+  },
+  {
+   "id": "co-until-filled",
+   "note": "Colorado: 'open until filled' is not a deadline",
+   "ad": "$80,000–$100,000 per year. Benefits: medical, dental and vision insurance, 401(k) with company match, and 15 days of PTO. Apply online at careers.example.com. Open until filled.",
+   "locations": [
+    "US-CO"
+   ],
+   "remote": "none",
+   "employeeCount": 50,
+   "expect": {
+    "US-CO": "review"
+   },
+   "deciding": {
+    "US-CO": "apply_info"
+   }
+  },
+  {
+   "id": "co-ongoing",
+   "note": "Colorado evergreen role: ongoing basis",
+   "ad": "Line cook, $19–$22/hour. Benefits: medical, dental and vision insurance, 401(k) with company match, and 15 days of PTO. Apply online at jobs.example.com; applications accepted on an ongoing basis.",
+   "locations": [
+    "US-CO"
+   ],
+   "remote": "none",
+   "employeeCount": 50,
+   "expect": {
+    "US-CO": "pass"
+   }
+  },
+  {
+   "id": "co-no-benefits",
+   "note": "Colorado requires benefits",
+   "ad": "Analyst. $80k–$95k annually. To apply, submit your resume at careers.example.com by November 15, 2026.",
+   "locations": [
+    "US-CO"
+   ],
+   "remote": "none",
+   "employeeCount": 50,
+   "expect": {
+    "US-CO": "fail"
+   },
+   "deciding": {
+    "US-CO": "benefits_described"
+   }
+  },
+  {
+   "id": "co-benefit-filler",
+   "note": "benefits with 'and more'",
+   "ad": "Analyst. $80k–$95k annually. Great benefits: health insurance, PTO and more! To apply, submit your resume at careers.example.com by November 15, 2026.",
+   "locations": [
+    "US-CO"
+   ],
+   "remote": "none",
+   "employeeCount": 50,
+   "expect": {
+    "US-CO": "review"
+   },
+   "deciding": {
+    "US-CO": "benefits_described"
+   }
+  },
+  {
+   "id": "k-shared",
+   "note": "'$80-100k' shares the k",
+   "ad": "Base pay $80-100k depending on level.",
+   "locations": [
+    "US-NY"
+   ],
+   "remote": "none",
+   "employeeCount": 50,
+   "expect": {
+    "US-NY": "pass"
+   },
+   "pay": {
+    "kind": "range",
+    "min": 80000,
+    "max": 100000
+   }
+  },
+  {
+   "id": "k-each",
+   "note": "k on both ends",
+   "ad": "Salary $120k-$150k annually + equity.",
+   "locations": [
+    "US-CA"
+   ],
+   "remote": "none",
+   "employeeCount": 50,
+   "expect": {
+    "US-CA": "pass"
+   },
+   "pay": {
+    "kind": "range",
+    "min": 120000,
+    "max": 150000,
+    "period": "year"
+   }
+  },
+  {
+   "id": "between-and",
+   "note": "'between X and Y'",
+   "ad": "The salary is between $95,000 and $120,000 a year.",
+   "locations": [
+    "US-NY"
+   ],
+   "remote": "none",
+   "employeeCount": 50,
+   "expect": {
+    "US-NY": "pass"
+   },
+   "pay": {
+    "kind": "range",
+    "min": 95000,
+    "max": 120000,
+    "period": "year"
+   }
+  },
+  {
+   "id": "iso-codes",
+   "note": "USD codes before the numbers",
+   "ad": "Compensation: USD 70,000 to USD 90,000 annually.",
+   "locations": [
+    "US-NY"
+   ],
+   "remote": "none",
+   "employeeCount": 50,
+   "expect": {
+    "US-NY": "pass"
+   },
+   "pay": {
+    "kind": "range",
+    "min": 70000,
+    "max": 90000,
+    "currency": "USD"
+   }
+  },
+  {
+   "id": "hourly-range",
+   "note": "an hourly range",
+   "ad": "Warehouse associate — $25 - $30/hr, weekends off.",
+   "locations": [
+    "US-NY"
+   ],
+   "remote": "none",
+   "employeeCount": 50,
+   "expect": {
+    "US-NY": "pass"
+   },
+   "pay": {
+    "kind": "range",
+    "min": 25,
+    "max": 30,
+    "period": "hour",
+    "annualMin": 52000,
+    "annualMax": 62400
+   },
+   "stage": true
+  },
+  {
+   "id": "hourly-weekly-hours",
+   "note": "hourly with a weekly-hours figure",
+   "ad": "Part-time barista, 20 hours per week. Pay: $18.50–$21.00 per hour plus tips.",
+   "locations": [
+    "US-NY"
+   ],
+   "remote": "none",
+   "employeeCount": 50,
+   "expect": {
+    "US-NY": "pass"
+   },
+   "pay": {
+    "kind": "range",
+    "min": 18.5,
+    "max": 21,
+    "period": "hour",
+    "annualMin": 19240,
+    "annualMax": 21840
+   }
+  },
+  {
+   "id": "hourly-slash-both",
+   "note": "a period on both ends",
+   "ad": "Rate: $22/hr - $26/hr.",
+   "locations": [
+    "US-NY"
+   ],
+   "remote": "none",
+   "employeeCount": 50,
+   "expect": {
+    "US-NY": "pass"
+   },
+   "pay": {
+    "kind": "range",
+    "min": 22,
+    "max": 26,
+    "period": "hour"
+   }
+  },
+  {
+   "id": "single-hourly-ny",
+   "note": "one fixed hourly rate where a fixed rate is allowed",
+   "ad": "Pay: $27.50 per hour.",
+   "locations": [
+    "US-NY"
+   ],
+   "remote": "none",
+   "employeeCount": 50,
+   "expect": {
+    "US-NY": "pass"
+   },
+   "pay": {
+    "kind": "single",
+    "min": 27.5,
+    "period": "hour"
+   }
+  },
+  {
+   "id": "single-hourly-ca",
+   "note": "one fixed rate where the text asks for a range",
+   "ad": "Pay: $27.50 per hour.",
+   "locations": [
+    "US-CA"
+   ],
+   "remote": "none",
+   "employeeCount": 50,
+   "expect": {
+    "US-CA": "review"
+   },
+   "deciding": {
+    "US-CA": "single_figure"
+   }
+  },
+  {
+   "id": "single-dc",
+   "note": "one salary figure in DC",
+   "ad": "Program Manager. Salary: $85,000.",
+   "locations": [
+    "US-DC"
+   ],
+   "remote": "none",
+   "employeeCount": 50,
+   "expect": {
+    "US-DC": "review"
+   },
+   "deciding": {
+    "US-DC": "single_figure"
+   }
+  },
+  {
+   "id": "single-wa",
+   "note": "a fixed salary with benefits in Washington",
+   "ad": "Salary: $85,000 per year. Benefits: medical, 401(k), paid time off.",
+   "locations": [
+    "US-WA"
+   ],
+   "remote": "none",
+   "employeeCount": 50,
+   "expect": {
+    "US-WA": "pass"
+   }
+  },
+  {
+   "id": "up-to",
+   "note": "'up to' with no floor",
+   "ad": "Sales associate. Earn up to $60,000!",
+   "locations": [
+    "US-NY"
+   ],
+   "remote": "none",
+   "employeeCount": 50,
+   "expect": {
+    "US-NY": "fail"
+   },
+   "pay": {
+    "kind": "open_max",
+    "max": 60000
+   },
+   "deciding": {
+    "US-NY": "range_bounded"
+   },
+   "stage": true
+  },
+  {
+   "id": "starting-at",
+   "note": "'starting at' with no top",
+   "ad": "Starting at $30/hour for certified technicians.",
+   "locations": [
+    "US-NY"
+   ],
+   "remote": "none",
+   "employeeCount": 50,
+   "expect": {
+    "US-NY": "fail"
+   },
+   "pay": {
+    "kind": "open_min",
+    "min": 30,
+    "period": "hour"
+   },
+   "deciding": {
+    "US-NY": "range_bounded"
+   }
+  },
+  {
+   "id": "plus-sign",
+   "note": "'$70,000+'",
+   "ad": "Base salary $70,000+ DOE.",
+   "locations": [
+    "US-NY"
+   ],
+   "remote": "none",
+   "employeeCount": 50,
+   "expect": {
+    "US-NY": "fail"
+   },
+   "pay": {
+    "kind": "open_min",
+    "min": 70000
+   },
+   "deciding": {
+    "US-NY": "range_bounded"
+   }
+  },
+  {
+   "id": "and-up",
+   "note": "'and up'",
+   "ad": "Experienced welders: $90,000 and up.",
+   "locations": [
+    "US-CA"
+   ],
+   "remote": "none",
+   "employeeCount": 50,
+   "expect": {
+    "US-CA": "fail"
+   },
+   "deciding": {
+    "US-CA": "range_bounded"
+   }
+  },
+  {
+   "id": "competitive",
+   "note": "'competitive' is not pay",
+   "ad": "Competitive salary and a great team. Apply today!",
+   "locations": [
+    "US-NY"
+   ],
+   "remote": "none",
+   "employeeCount": 50,
+   "expect": {
+    "US-NY": "fail"
+   },
+   "pay": {
+    "kind": "none"
+   },
+   "deciding": {
+    "US-NY": "pay_disclosed"
+   },
+   "stage": true
+  },
+  {
+   "id": "doe",
+   "note": "'DOE' is not pay",
+   "ad": "Pay: DOE. Full-time, Monday to Friday.",
+   "locations": [
+    "US-NY"
+   ],
+   "remote": "none",
+   "employeeCount": 50,
+   "expect": {
+    "US-NY": "fail"
+   },
+   "pay": {
+    "kind": "none"
+   },
+   "deciding": {
+    "US-NY": "pay_disclosed"
+   }
+  },
+  {
+   "id": "range-next-to-signing-bonus",
+   "note": "a salary range next to a signing bonus",
+   "ad": "Salary: $90,000–$110,000 per year plus a $10,000 signing bonus.",
+   "locations": [
+    "US-NY"
+   ],
+   "remote": "none",
+   "employeeCount": 50,
+   "expect": {
+    "US-NY": "pass"
+   },
+   "pay": {
+    "kind": "range",
+    "min": 90000,
+    "max": 110000
+   },
+   "stage": true
+  },
+  {
+   "id": "signing-bonus-first",
+   "note": "the bonus comes first",
+   "ad": "$10,000 sign-on bonus! Base salary $90k–$110k.",
+   "locations": [
+    "US-NY"
+   ],
+   "remote": "none",
+   "employeeCount": 50,
+   "expect": {
+    "US-NY": "pass"
+   },
+   "pay": {
+    "kind": "range",
+    "min": 90000,
+    "max": 110000
+   }
+  },
+  {
+   "id": "signing-bonus-only",
+   "note": "a signing bonus is not pay",
+   "ad": "A $5,000 signing bonus for qualified candidates! Competitive pay.",
+   "locations": [
+    "US-NY"
+   ],
+   "remote": "none",
+   "employeeCount": 50,
+   "expect": {
+    "US-NY": "fail"
+   },
+   "pay": {
+    "kind": "none"
+   },
+   "deciding": {
+    "US-NY": "pay_disclosed"
+   }
+  },
+  {
+   "id": "bonus-range-not-pay",
+   "note": "a bonus range is not a pay range",
+   "ad": "Signing bonus: $5,000 – $10,000. Salary commensurate with experience.",
+   "locations": [
+    "US-NY"
+   ],
+   "remote": "none",
+   "employeeCount": 50,
+   "expect": {
+    "US-NY": "fail"
+   },
+   "pay": {
+    "kind": "none"
+   }
+  },
+  {
+   "id": "bonus-up-to-then-salary",
+   "note": "'bonus up to' then the salary",
+   "ad": "Bonus up to $10,000. Salary $80,000 - $95,000 per year.",
+   "locations": [
+    "US-NY"
+   ],
+   "remote": "none",
+   "employeeCount": 50,
+   "expect": {
+    "US-NY": "pass"
+   },
+   "pay": {
+    "kind": "range",
+    "min": 80000,
+    "max": 95000
+   }
+  },
+  {
+   "id": "funding-then-range",
+   "note": "funding is not pay",
+   "ad": "We raised $25M in our Series B. Salary: $110,000–$140,000.",
+   "locations": [
+    "US-NY"
+   ],
+   "remote": "none",
+   "employeeCount": 50,
+   "expect": {
+    "US-NY": "pass"
+   },
+   "pay": {
+    "kind": "range",
+    "min": 110000,
+    "max": 140000
+   }
+  },
+  {
+   "id": "funding-only",
+   "note": "only funding and customer numbers",
+   "ad": "We raised $25M in our Series B and serve 10,000 customers.",
+   "locations": [
+    "US-NY"
+   ],
+   "remote": "none",
+   "employeeCount": 50,
+   "expect": {
+    "US-NY": "fail"
+   },
+   "pay": {
+    "kind": "none"
+   }
+  },
+  {
+   "id": "revenue-then-hourly",
+   "note": "revenue is not pay",
+   "ad": "Join a family business with $5 million in annual revenue. Hourly rate: $20–$24.",
+   "locations": [
+    "US-NY"
+   ],
+   "remote": "none",
+   "employeeCount": 50,
+   "expect": {
+    "US-NY": "pass"
+   },
+   "pay": {
+    "kind": "range",
+    "min": 20,
+    "max": 24,
+    "period": "hour"
+   }
+  },
+  {
+   "id": "401k-dollars-then-range",
+   "note": "a 401(k) dollar match is not pay",
+   "ad": "401(k) match up to $6,000 per year. Salary $75,000 to $85,000.",
+   "locations": [
+    "US-NY"
+   ],
+   "remote": "none",
+   "employeeCount": 50,
+   "expect": {
+    "US-NY": "pass"
+   },
+   "pay": {
+    "kind": "range",
+    "min": 75000,
+    "max": 85000
+   }
+  },
+  {
+   "id": "401k-only",
+   "note": "a retirement contribution alone",
+   "ad": "We offer a 401(k) with a $2,000 employer contribution and competitive pay.",
+   "locations": [
+    "US-NY"
+   ],
+   "remote": "none",
+   "employeeCount": 50,
+   "expect": {
+    "US-NY": "fail"
+   },
+   "pay": {
+    "kind": "none"
+   }
+  },
+  {
+   "id": "tips-cdle",
+   "note": "CDLE INFO #9A example: '$18 per hour plus $5-$10 hourly tips'",
+   "ad": "Server. $18 per hour plus $5-$10 hourly tips. Benefits: health insurance, PTO, 401(k). To apply, email jobs@example.com by March 1, 2027.",
+   "locations": [
+    "US-CO"
+   ],
+   "remote": "none",
+   "employeeCount": 50,
+   "expect": {
+    "US-CO": "pass"
+   },
+   "pay": {
+    "kind": "single",
+    "min": 18,
+    "period": "hour"
+   }
+  },
+  {
+   "id": "tips-only",
+   "note": "tips alone are not the employer's pay",
+   "ad": "Servers typically earn $10–$15 per hour in tips.",
+   "locations": [
+    "US-NY"
+   ],
+   "remote": "none",
+   "employeeCount": 50,
+   "expect": {
+    "US-NY": "fail"
+   },
+   "pay": {
+    "kind": "none"
+   }
+  },
+  {
+   "id": "ote-with-base",
+   "note": "base range with OTE and commission",
+   "ad": "Account Executive. Base salary $60,000–$70,000; OTE $120,000 with uncapped commission.",
+   "locations": [
+    "US-NY"
+   ],
+   "remote": "none",
+   "employeeCount": 50,
+   "expect": {
+    "US-NY": "pass"
+   },
+   "pay": {
+    "kind": "range",
+    "min": 60000,
+    "max": 70000
+   }
+  },
+  {
+   "id": "ote-only",
+   "note": "OTE alone is not base pay",
+   "ad": "Account Executive. OTE $150,000 (50/50 split).",
+   "locations": [
+    "US-NY"
+   ],
+   "remote": "none",
+   "employeeCount": 50,
+   "expect": {
+    "US-NY": "fail"
+   },
+   "pay": {
+    "kind": "none"
+   }
+  },
+  {
+   "id": "equity-after-range",
+   "note": "equity after the base range",
+   "ad": "$150,000–$180,000 base, plus $20,000 in equity annually.",
+   "locations": [
+    "US-NY"
+   ],
+   "remote": "none",
+   "employeeCount": 50,
+   "expect": {
+    "US-NY": "pass"
+   },
+   "pay": {
+    "kind": "range",
+    "min": 150000,
+    "max": 180000
+   }
+  },
+  {
+   "id": "relocation-then-range",
+   "note": "relocation money then pay",
+   "ad": "Relocation assistance of $7,500 available. Pay range: $64,000 - $72,000.",
+   "locations": [
+    "US-NY"
+   ],
+   "remote": "none",
+   "employeeCount": 50,
+   "expect": {
+    "US-NY": "pass"
+   },
+   "pay": {
+    "kind": "range",
+    "min": 64000,
+    "max": 72000
+   }
+  },
+  {
+   "id": "stipend-only",
+   "note": "a stipend and DOE",
+   "ad": "Remote-work stipend of $500 per month. Salary DOE.",
+   "locations": [
+    "US-NY"
+   ],
+   "remote": "none",
+   "employeeCount": 50,
+   "expect": {
+    "US-NY": "fail"
+   },
+   "pay": {
+    "kind": "none"
+   }
+  },
+  {
+   "id": "per-location-nyc-denver",
+   "note": "per-location ranges",
+   "ad": "Pay ranges — New York City: $120,000–$150,000; Denver: $105,000–$130,000. Benefits: medical, dental and vision insurance, 401(k) with company match, and 15 days of PTO. To apply, submit your resume at careers.example.com by November 15, 2026.",
+   "locations": [
+    "US-CO",
+    "US-NY"
+   ],
+   "remote": "none",
+   "employeeCount": 50,
+   "expect": {
+    "US-CO": "pass",
+    "US-NY": "pass"
+   },
+   "pay": {
+    "byLocation": {
+     "US-CO": [
+      105000,
+      130000
+     ],
+     "US-NY": [
+      120000,
+      150000
+     ]
+    }
+   },
+   "stage": true
+  },
+  {
+   "id": "per-location-missing",
+   "note": "a range for Denver only, checked in New York too",
+   "ad": "Denver: $105,000–$130,000 per year. Benefits: medical, dental and vision insurance, 401(k) with company match, and 15 days of PTO. To apply, submit your resume at careers.example.com by November 15, 2026.",
+   "locations": [
+    "US-CO",
+    "US-NY"
+   ],
+   "remote": "none",
+   "employeeCount": 50,
+   "expect": {
+    "US-CO": "pass",
+    "US-NY": "fail"
+   },
+   "deciding": {
+    "US-NY": "pay_disclosed"
+   }
+  },
+  {
+   "id": "per-location-open-in-one",
+   "note": "bounded in one state, open in the other",
+   "ad": "Colorado: $95,000–$115,000. New York: up to $140,000. Benefits: medical, dental and vision insurance, 401(k) with company match, and 15 days of PTO. To apply, submit your resume at careers.example.com by November 15, 2026.",
+   "locations": [
+    "US-CO",
+    "US-NY"
+   ],
+   "remote": "none",
+   "employeeCount": 50,
+   "expect": {
+    "US-CO": "pass",
+    "US-NY": "fail"
+   },
+   "deciding": {
+    "US-NY": "range_bounded"
+   }
+  },
+  {
+   "id": "per-location-trailing",
+   "note": "'… in New York City; … in Denver'",
+   "ad": "$110,000–$130,000 in New York City; $95,000–$115,000 in Denver. Benefits: medical, dental and vision insurance, 401(k) with company match, and 15 days of PTO. To apply, submit your resume at careers.example.com by November 15, 2026.",
+   "locations": [
+    "US-CO",
+    "US-NY"
+   ],
+   "remote": "none",
+   "employeeCount": 50,
+   "expect": {
+    "US-CO": "pass",
+    "US-NY": "pass"
+   },
+   "pay": {
+    "byLocation": {
+     "US-CO": [
+      95000,
+      115000
+     ],
+     "US-NY": [
+      110000,
+      130000
+     ]
+    }
+   }
+  },
+  {
+   "id": "per-location-codes",
+   "note": "USPS codes as labels",
+   "ad": "CA/WA: $140k–$170k | CO: $120k–$150k. Benefits: medical, dental, 401(k), PTO. To apply, visit our careers page; applications close December 31, 2026.",
+   "locations": [
+    "US-CA",
+    "US-WA",
+    "US-CO"
+   ],
+   "remote": "none",
+   "employeeCount": 50,
+   "expect": {
+    "US-CA": "pass",
+    "US-WA": "pass",
+    "US-CO": "pass"
+   },
+   "pay": {
+    "byLocation": {
+     "US-CA": [
+      140000,
+      170000
+     ],
+     "US-WA": [
+      140000,
+      170000
+     ],
+     "US-CO": [
+      120000,
+      150000
+     ]
+    }
+   }
+  },
+  {
+   "id": "per-location-london",
+   "note": "a London range is not US pay",
+   "ad": "London: £60,000–£70,000. New York: $110,000–$125,000.",
+   "locations": [
+    "US-NY"
+   ],
+   "remote": "none",
+   "employeeCount": 50,
+   "expect": {
+    "US-NY": "pass"
+   },
+   "pay": {
+    "byLocation": {
+     "US-NY": [
+      110000,
+      125000
+     ]
+    }
+   }
+  },
+  {
+   "id": "eu-suffix",
+   "note": "EU format, currency after",
+   "ad": "Gehalt: 45.000 – 55.000 € brutto jährlich.",
+   "locations": [
+    "EU-DE"
+   ],
+   "remote": "none",
+   "employeeCount": 50,
+   "expect": {
+    "EU-DE": "pass"
+   },
+   "pay": {
+    "kind": "range",
+    "min": 45000,
+    "max": 55000,
+    "currency": "EUR",
+    "period": "year"
+   },
+   "stage": true
+  },
+  {
+   "id": "eu-prefix",
+   "note": "EU format, currency before",
+   "ad": "Salary €50.000 - €60.000 per annum.",
+   "locations": [
+    "EU-NL"
+   ],
+   "remote": "none",
+   "employeeCount": 50,
+   "expect": {
+    "EU-NL": "pass"
+   },
+   "pay": {
+    "kind": "range",
+    "min": 50000,
+    "max": 60000,
+    "currency": "EUR",
+    "period": "year"
+   }
+  },
+  {
+   "id": "eu-none",
+   "note": "EU: no pay in the ad",
+   "ad": "Attractive package, hybrid working in Amsterdam.",
+   "locations": [
+    "EU-NL"
+   ],
+   "remote": "none",
+   "employeeCount": 50,
+   "expect": {
+    "EU-NL": "review"
+   },
+   "deciding": {
+    "EU": "on_request"
+   }
+  },
+  {
+   "id": "eu-k-euro",
+   "note": "'45-55 k€'",
+   "ad": "Rémunération : 45-55 k€ brut annuel.",
+   "locations": [
+    "EU-FR"
+   ],
+   "remote": "none",
+   "employeeCount": 50,
+   "expect": {
+    "EU-FR": "pass"
+   },
+   "pay": {
+    "kind": "range",
+    "min": 45000,
+    "max": 55000,
+    "currency": "EUR",
+    "period": "year"
+   }
+  },
+  {
+   "id": "eu-pln-monthly",
+   "note": "zloty, monthly",
+   "ad": "Wynagrodzenie: 12 000 – 16 000 PLN brutto miesięcznie.",
+   "locations": [
+    "EU-PL"
+   ],
+   "remote": "none",
+   "employeeCount": 50,
+   "expect": {
+    "EU-PL": "pass"
+   },
+   "pay": {
+    "kind": "range",
+    "min": 12000,
+    "max": 16000,
+    "currency": "PLN",
+    "period": "month",
+    "annualMin": 144000,
+    "annualMax": 192000
+   }
+  },
+  {
+   "id": "eu-space-thousands",
+   "note": "French spacing, € on both ends",
+   "ad": "Salaire : 42 000 € – 48 000 € par an.",
+   "locations": [
+    "EU-FR"
+   ],
+   "remote": "none",
+   "employeeCount": 50,
+   "expect": {
+    "EU-FR": "pass"
+   },
+   "pay": {
+    "kind": "range",
+    "min": 42000,
+    "max": 48000,
+    "currency": "EUR",
+    "period": "year"
+   }
+  },
+  {
+   "id": "cad-for-ny",
+   "note": "a range in another currency (CAD) for a US role",
+   "ad": "Salary: CAD 90,000–110,000 per year.",
+   "locations": [
+    "US-NY"
+   ],
+   "remote": "none",
+   "employeeCount": 50,
+   "expect": {
+    "US-NY": "review"
+   },
+   "pay": {
+    "kind": "range",
+    "min": 90000,
+    "max": 110000,
+    "currency": "CAD"
+   },
+   "deciding": {
+    "US-NY": "pay_currency"
+   },
+   "stage": true
+  },
+  {
+   "id": "gbp-for-ny",
+   "note": "pounds for a New York role",
+   "ad": "£40,000 to £48,000.",
+   "locations": [
+    "US-NY"
+   ],
+   "remote": "none",
+   "employeeCount": 50,
+   "expect": {
+    "US-NY": "review"
+   },
+   "deciding": {
+    "US-NY": "pay_currency"
+   }
+  },
+  {
+   "id": "eur-for-ca",
+   "note": "euros for a California role",
+   "ad": "€70.000–€85.000.",
+   "locations": [
+    "US-CA"
+   ],
+   "remote": "none",
+   "employeeCount": 50,
+   "expect": {
+    "US-CA": "review"
+   },
+   "deciding": {
+    "US-CA": "pay_currency"
+   }
+  },
+  {
+   "id": "usd-for-eu",
+   "note": "dollars for an EU role (the EU row is advisory)",
+   "ad": "USD 90,000–110,000.",
+   "locations": [
+    "EU-DE"
+   ],
+   "remote": "none",
+   "employeeCount": 50,
+   "expect": {
+    "EU-DE": "pass"
+   }
+  },
+  {
+   "id": "nj-wide-spread",
+   "note": "NJ: range wider than the proposed 60%",
+   "ad": "Salary: $50,000 – $150,000. Benefits: medical, dental, 401(k), PTO.",
+   "locations": [
+    "US-NJ"
+   ],
+   "remote": "none",
+   "employeeCount": 50,
+   "expect": {
+    "US-NJ": "review"
+   },
+   "deciding": {
+    "US-NJ": "spread"
+   }
+  },
+  {
+   "id": "nj-narrow",
+   "note": "NJ: within the proposed 60%",
+   "ad": "$90,000 – $120,000 per year. Benefits: health insurance, 401(k), paid time off.",
+   "locations": [
+    "US-NJ"
+   ],
+   "remote": "none",
+   "employeeCount": 50,
+   "expect": {
+    "US-NJ": "pass"
+   }
+  },
+  {
+   "id": "nj-no-benefits",
+   "note": "NJ requires benefits",
+   "ad": "$90,000 – $120,000 per year.",
+   "locations": [
+    "US-NJ"
+   ],
+   "remote": "none",
+   "employeeCount": 50,
+   "expect": {
+    "US-NJ": "fail"
+   },
+   "deciding": {
+    "US-NJ": "benefits_described"
+   }
+  },
+  {
+   "id": "mn-below-threshold",
+   "note": "Minnesota: under 30 employees",
+   "ad": "$20–$24/hour.",
+   "locations": [
+    "US-MN"
+   ],
+   "remote": "none",
+   "employeeCount": 20,
+   "expect": {
+    "US-MN": "not_applicable"
+   }
+  },
+  {
+   "id": "mn-single",
+   "note": "Minnesota: a fixed rate is allowed",
+   "ad": "$24/hour. Benefits: medical, PTO, pension.",
+   "locations": [
+    "US-MN"
+   ],
+   "remote": "none",
+   "employeeCount": 40,
+   "expect": {
+    "US-MN": "pass"
+   }
+  },
+  {
+   "id": "ca-below-threshold",
+   "note": "California: under 15 employees",
+   "ad": "Competitive pay.",
+   "locations": [
+    "US-CA"
+   ],
+   "remote": "none",
+   "employeeCount": 10,
+   "expect": {
+    "US-CA": "not_applicable"
+   }
+  },
+  {
+   "id": "md-up-to",
+   "note": "Maryland: 'up to' fails",
+   "ad": "Up to $45,000 per year. Benefits: health, dental, 401(k), PTO.",
+   "locations": [
+    "US-MD"
+   ],
+   "remote": "none",
+   "employeeCount": 50,
+   "expect": {
+    "US-MD": "fail"
+   },
+   "deciding": {
+    "US-MD": "range_bounded"
+   }
+  },
+  {
+   "id": "remote-us-up-to",
+   "note": "remote US, 'up to': covered states fail, unsettled ones need review",
+   "ad": "Up to $45,000 per year.",
+   "locations": [],
+   "remote": "us",
+   "employeeCount": 50,
+   "expect": {
+    "US-CA": "review",
+    "US-CO": "fail",
+    "US-DC": "review",
+    "US-MD": "review",
+    "US-MN": "review",
+    "US-NJ": "fail",
+    "US-NY": "fail",
+    "US-WA": "review"
+   }
+  },
+  {
+   "id": "reversed-pair",
+   "note": "'$50,000 and 20 days' is not a range",
+   "ad": "$50,000 and 20 days of PTO.",
+   "locations": [
+    "US-NY"
+   ],
+   "remote": "none",
+   "employeeCount": 50,
+   "expect": {
+    "US-NY": "pass"
+   },
+   "pay": {
+    "kind": "single",
+    "min": 50000
+   }
+  },
+  {
+   "id": "dates-and-counts",
+   "note": "dates and head counts are not money",
+   "ad": "Start date 2026-11-01. Team of 150. Salary range $65,000–$75,000.",
+   "locations": [
+    "US-NY"
+   ],
+   "remote": "none",
+   "employeeCount": 50,
+   "expect": {
+    "US-NY": "pass"
+   },
+   "pay": {
+    "kind": "range",
+    "min": 65000,
+    "max": 75000
+   }
+  },
+  {
+   "id": "bare-numbers",
+   "note": "a range with no currency written",
+   "ad": "Salary: 80,000 - 95,000 per year.",
+   "locations": [
+    "US-NY"
+   ],
+   "remote": "none",
+   "employeeCount": 50,
+   "expect": {
+    "US-NY": "pass"
+   },
+   "pay": {
+    "kind": "range",
+    "min": 80000,
+    "max": 95000,
+    "currency": null
+   }
+  },
+  {
+   "id": "levels",
+   "note": "two levels, two bounded ranges",
+   "ad": "Level II: $80,000–$100,000; Level III: $100,000–$130,000.",
+   "locations": [
+    "US-NY"
+   ],
+   "remote": "none",
+   "employeeCount": 50,
+   "expect": {
+    "US-NY": "pass"
+   },
+   "pay": {
+    "kind": "range",
+    "min": 80000,
+    "max": 100000
+   }
+  },
+  {
+   "id": "from-to",
+   "note": "'from X to Y' is bounded",
+   "ad": "Salary from $70,000 to $85,000.",
+   "locations": [
+    "US-NY"
+   ],
+   "remote": "none",
+   "employeeCount": 50,
+   "expect": {
+    "US-NY": "pass"
+   },
+   "pay": {
+    "kind": "range",
+    "min": 70000,
+    "max": 85000
+   }
+  },
+  {
+   "id": "inferred-hourly",
+   "note": "no period written, hourly size",
+   "ad": "Wage: $19–$23.",
+   "locations": [
+    "US-NY"
+   ],
+   "remote": "none",
+   "employeeCount": 50,
+   "expect": {
+    "US-NY": "pass"
+   },
+   "pay": {
+    "kind": "range",
+    "min": 19,
+    "max": 23,
+    "period": "hour"
+   }
+  },
+  {
+   "id": "vague-with-range",
+   "note": "'competitive' next to a real range",
+   "ad": "Competitive salary of $85k–$95k.",
+   "locations": [
+    "US-NY"
+   ],
+   "remote": "none",
+   "employeeCount": 50,
+   "expect": {
+    "US-NY": "pass"
+   }
+  },
+  {
+   "id": "cdle-example-10",
+   "note": "CDLE INFO #9A example 10",
+   "ad": "Jo Doe is recommended for promotion to senior accountant. Salary $50-70,000; health ins.; PTO; 401k. To apply by January 1, or to express interest in similar jobs, email interest@CompanyHr.com.",
+   "locations": [
+    "US-CO"
+   ],
+   "remote": "none",
+   "employeeCount": 50,
+   "expect": {
+    "US-CO": "pass"
+   },
+   "pay": {
+    "kind": "range",
+    "min": 50000,
+    "max": 70000
+   }
+  }
+ ]
+}
