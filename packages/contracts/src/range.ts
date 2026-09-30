@@ -406,7 +406,145 @@ export interface RecheckResponse {
   changes: VerdictChange[];
 }
 
-export const RANGE_EVENT_TYPES = ["range.check.run", "range.check.rechecked"] as const;
+// ── RW3: saved ads, the weekly scan, alerts and the compliance report ──────
+
+export const WATCH_SOURCE_KINDS = ["text", "url"] as const;
+export type WatchSourceKind = (typeof WATCH_SOURCE_KINDS)[number];
+
+/** Why a saved ad was scanned. */
+export const WATCH_SCAN_REASONS = ["new", "edited", "rules_changed", "weekly", "manual"] as const;
+export type WatchScanReason = (typeof WATCH_SCAN_REASONS)[number];
+
+export const WATCH_SCAN_REASON_LABELS: Record<WatchScanReason, string> = {
+  new: "First scan",
+  edited: "The ad or its facts changed",
+  rules_changed: "A rule it is checked against changed",
+  weekly: "Weekly re-check",
+  manual: "Scanned on request",
+};
+
+export const WATCH_FETCH_STATUSES = ["ok", "refused", "failed", "too_large"] as const;
+export type WatchFetchStatus = (typeof WATCH_FETCH_STATUSES)[number];
+
+/** A careers page is fetched with these limits (design §1.4, plan RW3). */
+export const WATCH_FETCH_MAX_BYTES = 1_000_000;
+export const WATCH_FETCH_TIMEOUT_MS = 10_000;
+/** A saved ad is re-checked this many days after its last scan. */
+export const WATCH_RESCAN_DAYS = 7;
+
+export interface PublicWatchedAd {
+  /** `rwa_…` */
+  id: string;
+  title: string;
+  sourceKind: WatchSourceKind;
+  sourceUrl: string | null;
+  /** The pasted ad, or the text last fetched from the URL ("" before the first fetch). */
+  adText: string;
+  locations: string[];
+  remote: RangeRemoteArea;
+  employeeCount: number;
+  /** Who is emailed when the verdict gets worse: the member who saved the ad. */
+  recruiterEmail: string;
+  active: boolean;
+  revision: number;
+  lastCheckId: string | null;
+  lastOverall: RangeVerdict | null;
+  lastCheckedAt: string | null;
+  nextDueOn: string;
+  lastFetch: { status: WatchFetchStatus; error: string | null; at: string } | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface SaveWatchedAdRequest {
+  title?: string;
+  /** Exactly one of adText and sourceUrl. */
+  adText?: string;
+  /** A public https careers-page URL, fetched by the worker at each scan. */
+  sourceUrl?: string;
+  locations: string[];
+  remote?: RangeRemoteArea;
+  employeeCount: number;
+}
+
+export type UpdateWatchedAdRequest = Partial<Omit<SaveWatchedAdRequest, "sourceUrl">> & { sourceUrl?: string; active?: boolean };
+
+export interface PublicAlert {
+  id: string;
+  checkId: string;
+  previousCheckId: string | null;
+  previousOverall: RangeVerdict | null;
+  overall: RangeVerdict;
+  worsened: VerdictChange[];
+  recipient: string;
+  /** "accepted" means notifications-worker accepted the send — not that it was delivered. */
+  status: "pending" | "accepted" | "failed";
+  createdAt: string;
+}
+
+export interface WatchedAdResponse {
+  ad: PublicWatchedAd;
+}
+
+export interface WatchedAdDetailResponse {
+  ad: PublicWatchedAd;
+  lastCheck: PublicPayCheck | null;
+  alerts: PublicAlert[];
+}
+
+export interface ListWatchedAdsResponse {
+  ads: PublicWatchedAd[];
+}
+
+export interface ScanOutcome {
+  adId: string;
+  reason: WatchScanReason;
+  status: "checked" | "failed";
+  checkId: string | null;
+  overall: RangeVerdict | null;
+  error: string | null;
+  alert: { id: string; status: PublicAlert["status"]; worsened: VerdictChange[] } | null;
+}
+
+export interface ScanResponse {
+  ad: PublicWatchedAd;
+  outcome: ScanOutcome;
+}
+
+export interface SweepResponse {
+  today: string;
+  /** Active saved ads looked at. */
+  considered: number;
+  /** Due ones this call claimed and scanned (a window already claimed is skipped). */
+  scanned: ScanOutcome[];
+  alreadyClaimed: number;
+}
+
+export interface ComplianceReportRow {
+  adId: string;
+  title: string;
+  source: string;
+  lastCheckId: string | null;
+  lastCheckedAt: string | null;
+  overall: RangeVerdict | "pending";
+  jurisdictions: { location: string; jurisdictionName: string; verdict: RangeVerdict; ruleId: string | null; deciding: string | null; explanation: string | null }[];
+}
+
+export interface ComplianceReportResponse {
+  generatedAt: string;
+  rulesVersion: string;
+  totals: Record<RangeVerdict | "pending", number>;
+  ads: ComplianceReportRow[];
+}
+
+export const RANGE_EVENT_TYPES = [
+  "range.check.run",
+  "range.check.rechecked",
+  "range.ad.saved",
+  "range.ad.updated",
+  "range.ad.scanned",
+  "range.ad.alerted",
+] as const;
 export type RangeEventType = (typeof RANGE_EVENT_TYPES)[number];
 
 export const PAY_CHECK_AD_MAX = 20_000;

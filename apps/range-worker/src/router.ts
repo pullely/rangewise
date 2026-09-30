@@ -2,6 +2,8 @@ import type { Env } from "./env.js";
 import { handleHealth } from "./handlers/health.js";
 import { handleListRules } from "./handlers/rules.js";
 import { handleGetCheck, handleListChecks, handleRecheck, handleRunCheck } from "./handlers/checks.js";
+import { handleGetAd, handleListAds, handleSaveAd, handleScanAd, handleSweep, handleUpdateAd } from "./handlers/watch.js";
+import { handleComplianceReport } from "./handlers/report.js";
 import { errorResponse, methodNotAllowed, notFound } from "./http.js";
 import { generateRequestId, parseOrgPublicId } from "./ids.js";
 
@@ -36,6 +38,12 @@ const RULES_RE = /^\/v1\/organizations\/([^/]+)\/pay-rules$/;
 const CHECKS_RE = /^\/v1\/organizations\/([^/]+)\/pay-checks$/;
 const CHECK_RE = /^\/v1\/organizations\/([^/]+)\/pay-checks\/([^/]+)$/;
 const RECHECK_RE = /^\/v1\/organizations\/([^/]+)\/pay-checks\/([^/]+)\/recheck$/;
+// RW3
+const ADS_RE = /^\/v1\/organizations\/([^/]+)\/watched-ads$/;
+const SWEEP_RE = /^\/v1\/organizations\/([^/]+)\/watched-ads\/sweep$/;
+const AD_RE = /^\/v1\/organizations\/([^/]+)\/watched-ads\/([^/]+)$/;
+const SCAN_RE = /^\/v1\/organizations\/([^/]+)\/watched-ads\/([^/]+)\/scan$/;
+const REPORT_RE = /^\/v1\/organizations\/([^/]+)\/reports\/compliance$/;
 
 function unauthenticated(requestId: string): Response {
   return errorResponse("unauthenticated", "Authentication required", 401, requestId);
@@ -76,6 +84,46 @@ async function routeOrg(request: Request, env: Env, requestId: string, path: str
     const actor = resolveActor(request);
     if (!actor) return unauthenticated(requestId);
     return handleRecheck(request, env, requestId, actor, org, m[2]!);
+  }
+  if ((m = path.match(ADS_RE))) {
+    const org = parseOrgPublicId(m[1]!);
+    if (!org) return notFound(requestId);
+    if (method !== "GET" && method !== "POST") return methodNotAllowed(requestId);
+    const actor = resolveActor(request);
+    if (!actor) return unauthenticated(requestId);
+    return method === "POST" ? handleSaveAd(request, env, requestId, actor, org) : handleListAds(env, requestId, actor, org);
+  }
+  if ((m = path.match(SWEEP_RE))) {
+    const org = parseOrgPublicId(m[1]!);
+    if (!org) return notFound(requestId);
+    if (method !== "POST") return methodNotAllowed(requestId);
+    const actor = resolveActor(request);
+    if (!actor) return unauthenticated(requestId);
+    return handleSweep(env, requestId, actor, org);
+  }
+  if ((m = path.match(AD_RE))) {
+    const org = parseOrgPublicId(m[1]!);
+    if (!org) return notFound(requestId);
+    if (method !== "GET" && method !== "PATCH") return methodNotAllowed(requestId);
+    const actor = resolveActor(request);
+    if (!actor) return unauthenticated(requestId);
+    return method === "PATCH" ? handleUpdateAd(request, env, requestId, actor, org, m[2]!) : handleGetAd(env, requestId, actor, org, m[2]!);
+  }
+  if ((m = path.match(SCAN_RE))) {
+    const org = parseOrgPublicId(m[1]!);
+    if (!org) return notFound(requestId);
+    if (method !== "POST") return methodNotAllowed(requestId);
+    const actor = resolveActor(request);
+    if (!actor) return unauthenticated(requestId);
+    return handleScanAd(env, requestId, actor, org, m[2]!);
+  }
+  if ((m = path.match(REPORT_RE))) {
+    const org = parseOrgPublicId(m[1]!);
+    if (!org) return notFound(requestId);
+    if (method !== "GET") return methodNotAllowed(requestId);
+    const actor = resolveActor(request);
+    if (!actor) return unauthenticated(requestId);
+    return handleComplianceReport(request, env, requestId, actor, org);
   }
   return null;
 }

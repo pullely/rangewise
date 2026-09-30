@@ -11,7 +11,7 @@ export interface AuditInput {
   orgId: string;
   actor: AuditActor;
   requestId: string;
-  subjectKind: "pay_check";
+  subjectKind: "pay_check" | "watched_ad";
   subjectId: string;
   subjectName: string;
   description: string;

@@ -11,6 +11,11 @@
   "vars": {
     "ENVIRONMENT": "local"
   },
+  // RW3: the daily sweep of saved ads (weekly re-checks, and re-checks after a
+  // rule version changes). Inherited by stage and prod.
+  "triggers": {
+    "crons": ["0 6 * * *"]
+  },
   "env": {
     "dev": {
       "vars": {
@@ -37,6 +42,10 @@
         {
           "binding": "POLICY_WORKER",
           "service": "rangewise-policy-worker-stage"
+        },
+        {
+          "binding": "NOTIFICATIONS_WORKER",
+          "service": "rangewise-notifications-worker-stage"
         }
       ]
     },
@@ -60,6 +69,10 @@
         {
           "binding": "POLICY_WORKER",
           "service": "rangewise-policy-worker-prod"
+        },
+        {
+          "binding": "NOTIFICATIONS_WORKER",
+          "service": "rangewise-notifications-worker-prod"
         }
       ]
     }

@@ -201,5 +201,14 @@ export const manifest: MigrationManifest = {
       description:
         "Stored pay checks (RW2) — every check of a job ad with its text, the facts it was checked under, the full result with evidence spans, and the rule versions used; never edited, a re-check is a new row in the same lineage",
     },
+    {
+      id: "220_range_watch",
+      context: "range",
+      path: "220_range_watch/up.sql",
+      checksum:
+        "0fc4282e4e7bb9de674e845d45b048e8aca65460ffb672b38770153968dc2645",
+      description:
+        "Saved ads, the weekly scan and the alert ledger (RW3) — pasted or URL job ads kept checked, one claimed scan per ad per due window (UNIQUE ad_id, window_key), and one alert row per worsening (UNIQUE ad_id, check_id)",
+    },
   ],
 };

@@ -1,3 +1,5 @@
+import { checkPublicUrl } from "./fetch-ad.js";
+import type { WatchedAdEdit, WatchedAdRow } from "@saas/db/range";
 import {
   PAY_CHECK_AD_MAX,
   PAY_CHECK_EMPLOYEES_MAX,
@@ -86,4 +88,85 @@ export function validateCheckBody(body: unknown, today: string): Validation<Vali
 
   if (Object.keys(fields).length) return { valid: false, fields };
   return { valid: true, value: { title, adText, locations, remote, employeeCount, checkDate } };
+}
+
+// ── RW3: saved ads ───────────────────────────────────────────────────────────
+
+
+export interface ValidWatch {
+  title: string;
+  sourceKind: "text" | "url";
+  adText: string;
+  sourceUrl: string | null;
+  locations: string[];
+  remote: RangeRemoteArea;
+  employeeCount: number;
+}
+
+function urlField(value: unknown, fields: Record<string, string[]>): string | null {
+  if (typeof value !== "string" || value.trim() === "") {
+    (fields.sourceUrl ??= []).push("A public https:// careers-page URL");
+    return null;
+  }
+  if (value.length > 2048) {
+    (fields.sourceUrl ??= []).push("At most 2048 characters");
+    return null;
+  }
+  const verdict = checkPublicUrl(value);
+  if (!verdict.ok) {
+    (fields.sourceUrl ??= []).push(verdict.reason);
+    return null;
+  }
+  return verdict.url.toString();
+}
+
+/** POST …/watched-ads: exactly one of `adText` and `sourceUrl`, plus the check facts. */
+export function validateWatchCreate(body: unknown, today: string): Validation<ValidWatch> {
+  if (!body || typeof body !== "object" || Array.isArray(body)) return { valid: false, fields: { body: ["Expected a JSON object"] } };
+  const b = body as Record<string, unknown>;
+  const fields: Record<string, string[]> = {};
+  const hasText = b.adText !== undefined && b.adText !== null;
+  const hasUrl = b.sourceUrl !== undefined && b.sourceUrl !== null;
+  if (hasText === hasUrl) fields.source = ["Give exactly one of adText (the pasted ad) and sourceUrl (a public careers page)"];
+  const sourceUrl = hasUrl ? urlField(b.sourceUrl, fields) : null;
+  const rest = validateCheckBody({ ...b, adText: hasUrl ? "(fetched at each scan)" : b.adText, checkDate: undefined }, today);
+  if (!rest.valid) Object.assign(fields, rest.fields);
+  if (Object.keys(fields).length || !rest.valid) return { valid: false, fields };
+  const v = rest.value;
+  return {
+    valid: true,
+    value: { title: v.title, sourceKind: hasUrl ? "url" : "text", adText: hasUrl ? "" : v.adText, sourceUrl, locations: v.locations, remote: v.remote, employeeCount: v.employeeCount },
+  };
+}
+
+/** PATCH …/watched-ads/{rwa}: any of the fields; a change to what is checked bumps the ad's revision (it is due again today). */
+export function validateWatchUpdate(body: unknown, current: WatchedAdRow, today: string): Validation<{ edit: WatchedAdEdit; bump: boolean }> {
+  if (!body || typeof body !== "object" || Array.isArray(body)) return { valid: false, fields: { body: ["Expected a JSON object"] } };
+  const b = body as Record<string, unknown>;
+  const fields: Record<string, string[]> = {};
+  if (b.adText !== undefined && current.sourceKind === "url") fields.adText = ["This saved ad is read from its URL; change sourceUrl instead"];
+  if (b.sourceUrl !== undefined && current.sourceKind === "text") fields.sourceUrl = ["This saved ad is pasted text; change adText instead"];
+  const sourceUrl = b.sourceUrl !== undefined && current.sourceKind === "url" ? urlField(b.sourceUrl, fields) : null;
+  if (b.active !== undefined && typeof b.active !== "boolean") fields.active = ["true or false"];
+  const merged = {
+    title: b.title !== undefined ? b.title : current.title,
+    adText: current.sourceKind === "text" ? (b.adText !== undefined ? b.adText : current.adText) : "(fetched at each scan)",
+    locations: b.locations !== undefined ? b.locations : current.locations,
+    remote: b.remote !== undefined ? b.remote : current.remote,
+    employeeCount: b.employeeCount !== undefined ? b.employeeCount : current.employeeCount,
+  };
+  const rest = validateCheckBody(merged, today);
+  if (!rest.valid) Object.assign(fields, rest.fields);
+  if (Object.keys(fields).length || !rest.valid) return { valid: false, fields };
+  const v = rest.value;
+  const edit: WatchedAdEdit = {};
+  if (b.title !== undefined) edit.title = v.title;
+  if (current.sourceKind === "text" && b.adText !== undefined && v.adText !== current.adText) edit.adText = v.adText;
+  if (sourceUrl && sourceUrl !== current.sourceUrl) edit.sourceUrl = sourceUrl;
+  if (b.locations !== undefined && JSON.stringify(v.locations) !== JSON.stringify(current.locations)) edit.locations = v.locations;
+  if (b.remote !== undefined && v.remote !== current.remote) edit.remote = v.remote;
+  if (b.employeeCount !== undefined && v.employeeCount !== current.employeeCount) edit.employeeCount = v.employeeCount;
+  if (typeof b.active === "boolean") edit.active = b.active;
+  const bump = edit.adText !== undefined || edit.sourceUrl !== undefined || edit.locations !== undefined || edit.remote !== undefined || edit.employeeCount !== undefined;
+  return { valid: true, value: { edit, bump } };
 }

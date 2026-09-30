@@ -40,6 +40,10 @@ export function payCheckPublicId(uuid: string): string {
   return `rwc_${uuidToHex(uuid)}`;
 }
 
+export function watchedAdPublicId(uuid: string): string {
+  return `rwa_${uuidToHex(uuid)}`;
+}
+
 const SUBJECT_KIND_PREFIX: Record<string, (uuid: string) => string> = {
   organization: orgPublicId,
   project: projectPublicId,
@@ -47,6 +51,7 @@ const SUBJECT_KIND_PREFIX: Record<string, (uuid: string) => string> = {
   invitation: invitationPublicId,
   member: memberPublicId,
   pay_check: payCheckPublicId,
+  watched_ad: watchedAdPublicId,
 };
 
 export function toPublicId(kind: string, rawId: string): string {
