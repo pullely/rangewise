@@ -69,8 +69,12 @@ describe("stored checks (RW2)", () => {
 
   it("lists the history newest first, filters by verdict and pages with a cursor", async () => {
     const w = world();
+    // Distinct timestamps: rows stored in the same millisecond tie-break on id, which is random.
+    const tick = (): Promise<void> => new Promise((r) => setTimeout(r, 5));
     const a = await store(w);
+    await tick();
     const b = await store(w, { adText: "Earn up to $60,000!", locations: ["US-NY"], employeeCount: 50, title: "Sales" });
+    await tick();
     const c = await store(w, { adText: "Salary $70,000 - $80,000.", locations: ["US-NY"], employeeCount: 50 });
     const all = (await json(await call(w, CHECKS, { headers: as(MEMBER) }))).data;
     expect(all.checks.map((x: any) => x.id)).toEqual([c.id, b.id, a.id]);

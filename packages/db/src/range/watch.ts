@@ -200,7 +200,7 @@ export function createRangeWatchRepository(executor: SqlExecutor): RangeWatchRep
 
     async listAds(orgId, limit) {
       const r = await executor.execute<Row>(
-        `SELECT ${AD_COLUMNS} FROM range_watched_ads WHERE org_id = $1 ORDER BY created_at DESC, id DESC LIMIT $2`,
+        `SELECT ${AD_COLUMNS} FROM range_watched_ads WHERE org_id = $1 ORDER BY created_at DESC, rowid DESC LIMIT $2`,
         [orgId, limit],
       );
       return r.rows.map((row) => mapAd(row));
@@ -330,7 +330,7 @@ export function createRangeWatchRepository(executor: SqlExecutor): RangeWatchRep
            FROM range_watched_ads a
            LEFT JOIN range_checks c ON c.id = a.last_check_id AND c.org_id = a.org_id
           WHERE a.org_id = $1
-          ORDER BY a.created_at, a.id
+          ORDER BY a.created_at, a.rowid
           LIMIT 1000`,
         [orgId],
       );
