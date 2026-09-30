@@ -69,7 +69,7 @@ first audited write works on D1:
 - on prod `/health` is 200, both routes answer 401 unauthenticated, and
   `DEBUG_DELIVERY` is false
 
-## RW2 — the deterministic check engine
+## RW2 — the deterministic check engine ✅
 
 - Migration `210_range_checks` (`range_checks`, design §1.3).
 - The full parser, replacing RW1's first cut:
