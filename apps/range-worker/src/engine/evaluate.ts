@@ -1,6 +1,9 @@
 import {
+  EU_CURRENCIES,
   RANGE_UNVERIFIED_JURISDICTIONS,
   describePay,
+  type EvidenceSpan,
+  type ExtractedPay,
   ruleCodeFor,
   type ExtractedAd,
   type JurisdictionResult,
@@ -9,7 +12,52 @@ import {
   type RangeVerdict,
   type RequirementResult,
 } from "@saas/contracts/range";
-import { CORE_BENEFITS } from "./extract.js";
+import { CORE_BENEFITS, NO_PAY, bestStatement } from "./extract.js";
+
+/**
+ * Colorado requires every posting to say how and when to apply (C.R.S.
+ * § 8-5-201(2); POST Rule 11.1.1, 11.1.3(A)–(B), as INFO #9A §3 reads them).
+ * Keyed off the jurisdiction here rather than a rules-table column: adding a
+ * column would edit seeded rule rows, which design §0.1 forbids. A later rules
+ * migration can move it into the table as a new version.
+ */
+const APPLY_INFO_RULES: Readonly<Record<string, string>> = {
+  "US-CO": "C.R.S. § 8-5-201(2); 7 CCR 1103-18 (POST Rules) Rule 11.1.1, 11.1.3(A)–(B)",
+};
+
+function spanOf(pay: ExtractedPay): EvidenceSpan[] {
+  return pay.start !== null && pay.end !== null ? [{ text: pay.text, start: pay.start, end: pay.end }] : [];
+}
+
+interface ChosenPay {
+  pay: ExtractedPay;
+  /** Set when the ad gives pay only for other places. */
+  onlyFor: string[];
+}
+
+/**
+ * The pay statement that applies to one target: a statement written for that
+ * place ("Denver: …" for US-CO), else the statements written for the whole ad,
+ * else none — the ad gives pay only for other places.
+ */
+export function payFor(ad: ExtractedAd, location: string): ChosenPay {
+  const statements = ad.statements ?? (ad.pay.kind === "none" ? [] : [ad.pay]);
+  const matches = (s: ExtractedPay): boolean => {
+    const locs = s.locations ?? [];
+    return locs.includes(location) || (location === "EU" && locs.some((l) => l.startsWith("EU-")));
+  };
+  const own = bestStatement(statements.filter(matches));
+  if (own) return { pay: own, onlyFor: [] };
+  const general = bestStatement(statements.filter((s) => (s.locations ?? []).length === 0));
+  if (general) return { pay: general, onlyFor: [] };
+  const scoped = [...new Set(statements.map((s) => s.scope).filter((x): x is string => !!x))];
+  return { pay: NO_PAY, onlyFor: scoped };
+}
+
+function currencyOk(code: string, currency: string | null | undefined): boolean {
+  if (!currency) return true;
+  return code === "EU" ? EU_CURRENCIES.includes(currency) : currency === "USD";
+}
 
 /**
  * Apply each jurisdiction's rule to an extracted ad (design §2.2). Pure: the
@@ -63,14 +111,21 @@ function money(n: number): string {
   return n.toLocaleString("en-US", { maximumFractionDigits: 2 });
 }
 
-function requirementsFor(rule: PublicPayRule, ad: ExtractedAd): RequirementResult[] {
-  const req = (requirement: RequirementResult["requirement"], outcome: RequirementResult["outcome"], explanation: string): RequirementResult => ({
+function requirementsFor(rule: PublicPayRule, ad: ExtractedAd, chosen: ChosenPay): RequirementResult[] {
+  const pay = chosen.pay;
+  const payEvidence = spanOf(pay);
+  const req = (
+    requirement: RequirementResult["requirement"],
+    outcome: RequirementResult["outcome"],
+    explanation: string,
+    evidence: EvidenceSpan[] = payEvidence,
+  ): RequirementResult => ({
     requirement,
     outcome,
     explanation,
     citation: rule.citation,
+    evidence,
   });
-  const pay = ad.pay;
   const payText = pay.text ? `"${pay.text}"` : "";
   const out: RequirementResult[] = [];
 
@@ -89,10 +144,25 @@ function requirementsFor(rule: PublicPayRule, ad: ExtractedAd): RequirementResul
 
   if (pay.kind === "none") {
     const vague = ad.vaguePay.length ? ` It says ${ad.vaguePay.map((w) => `"${w}"`).join(", ")}, which does not count as pay.` : "";
-    out.push(req("pay_disclosed", "failed", `No pay is stated in the ad.${vague} ${rule.jurisdictionName} requires the pay or pay range in the posting.`));
-    return out.concat(benefitsRequirement(rule, ad));
+    const scoped = chosen.onlyFor.length
+      ? `The ad gives pay only for ${chosen.onlyFor.join("; ")}, and none of it is written for ${rule.jurisdictionName}.`
+      : "No pay is stated in the ad.";
+    const bonus = (ad.nonPay ?? []).find((n) => n.kind === "sign_on_bonus" || n.kind === "bonus");
+    const other = bonus ? ` "${bonus.text}" is a bonus, not the position's pay.` : "";
+    out.push(req("pay_disclosed", "failed", `${scoped}${vague}${other} ${rule.jurisdictionName} requires the pay or pay range in the posting.`, ad.vagueEvidence ?? []));
+    return out.concat(benefitsRequirement(rule, ad), applyRequirement(rule, ad));
   }
-  out.push(req("pay_disclosed", "met", `Pay is stated: ${payText} (${describePay(pay)}).`));
+  const scopeNote = pay.scope ? ` It is the pay the ad gives for ${pay.scope}.` : "";
+  out.push(req("pay_disclosed", "met", `Pay is stated: ${payText} (${describePay(pay)}).${scopeNote}`));
+  if (!currencyOk(rule.jurisdictionCode, pay.currency)) {
+    out.push(
+      req(
+        "pay_currency",
+        "review",
+        `The pay is stated in ${pay.currency}, not ${rule.jurisdictionCode === "EU" ? "the euro or a member state's currency" : "US dollars"}. Rangewise cannot tell whether that is the pay for a role performed in ${rule.jurisdictionName}.`,
+      ),
+    );
+  }
 
   if (pay.kind === "open_max" || pay.kind === "open_min") {
     const missing = pay.kind === "open_max" ? "a bottom" : "a top";
@@ -126,13 +196,37 @@ function requirementsFor(rule: PublicPayRule, ad: ExtractedAd): RequirementResul
           ),
     );
   }
-  return out.concat(benefitsRequirement(rule, ad));
+  return out.concat(benefitsRequirement(rule, ad), applyRequirement(rule, ad));
+}
+
+function applyRequirement(rule: PublicPayRule, ad: ExtractedAd): RequirementResult[] {
+  const citation = APPLY_INFO_RULES[rule.jurisdictionCode];
+  if (!citation || !ad.apply) return [];
+  const { how, when, untilFilled } = ad.apply;
+  const evidence = [how, when, untilFilled].filter((x): x is EvidenceSpan => x !== null);
+  if (how && when) {
+    return [{ requirement: "apply_info", outcome: "met", explanation: `The ad says how to apply ("${how.text}") and by when ("${when.text}").`, citation, evidence }];
+  }
+  const missing = [how ? null : "how to apply", when ? null : "an application deadline (or that applications are accepted on an ongoing basis)"].filter(Boolean).join(" and ");
+  const filled = untilFilled && !when ? ` "${untilFilled.text}" is not a deadline under the Colorado guidance.` : "";
+  return [
+    {
+      requirement: "apply_info",
+      outcome: "review",
+      explanation: `Rangewise did not find ${missing} in the ad.${filled} ${rule.jurisdictionName} requires every posting to say how and when to apply; a human should confirm it is there.`,
+      citation,
+      evidence,
+    },
+  ];
 }
 
 function benefitsRequirement(rule: PublicPayRule, ad: ExtractedAd): RequirementResult[] {
   if (!rule.benefitsRequired) return [];
   const core = ad.benefits.filter((b) => CORE_BENEFITS.includes(b));
   const citation = rule.citation;
+  const evidence: EvidenceSpan[] = (ad.benefitEvidence ?? [])
+    .filter((b) => CORE_BENEFITS.includes(b.category))
+    .map(({ text, start, end }) => ({ text, start, end }));
   if (core.length === 0) {
     return [
       {
@@ -140,6 +234,7 @@ function benefitsRequirement(rule: PublicPayRule, ad: ExtractedAd): RequirementR
         outcome: "failed",
         explanation: `No benefits are described. ${rule.jurisdictionName} requires ${rule.benefitsScope}.`,
         citation,
+        evidence: [],
       },
     ];
   }
@@ -150,6 +245,7 @@ function benefitsRequirement(rule: PublicPayRule, ad: ExtractedAd): RequirementR
         outcome: "review",
         explanation: `Benefits are described (${core.join(", ")}) but with ${ad.benefitFiller.map((f) => `"${f}"`).join(", ")}; ${rule.jurisdictionName} asks for a general description of all benefits, and open-ended filler does not count toward it.`,
         citation,
+        evidence,
       },
     ];
   }
@@ -159,6 +255,7 @@ function benefitsRequirement(rule: PublicPayRule, ad: ExtractedAd): RequirementR
       outcome: "met",
       explanation: `Benefits are described (${core.join(", ")}). Rangewise checks that benefits are described, not that the list is complete.`,
       citation,
+      evidence,
     },
   ];
 }
@@ -216,7 +313,8 @@ function evaluateOne(ad: ExtractedAd, facts: CheckFacts, rules: readonly PublicP
     return { ...base, jurisdictionName: name, verdict: "not_applicable", ruleId: rule.id, citation: rule.citation, sourceUrl: rule.sourceUrl, deciding, requirements: [deciding] };
   }
 
-  const requirements = requirementsFor(rule, ad);
+  const chosen = payFor(ad, t.location);
+  const requirements = requirementsFor(rule, ad, chosen);
   let { verdict, deciding } = decide(requirements);
   if (verdict === "fail" && t.via === "remote" && rule.remoteCoverage === "unsettled" && deciding) {
     verdict = "review";
@@ -226,7 +324,7 @@ function evaluateOne(ad: ExtractedAd, facts: CheckFacts, rules: readonly PublicP
       explanation: `${deciding.explanation} ${name} is included only because the role is remote, and the source Rangewise read does not say whether remote roles performable there are covered.`,
     };
   }
-  return { ...base, jurisdictionName: name, verdict, ruleId: rule.id, citation: rule.citation, sourceUrl: rule.sourceUrl, deciding, requirements };
+  return { ...base, jurisdictionName: name, verdict, ruleId: rule.id, citation: rule.citation, sourceUrl: rule.sourceUrl, deciding, requirements, pay: chosen.pay };
 }
 
 function withReason(base: { location: string; jurisdictionCode: string; via: "location" | "remote" }, code: string, reason: string): JurisdictionResult {

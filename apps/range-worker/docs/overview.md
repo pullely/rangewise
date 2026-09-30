@@ -19,11 +19,19 @@ The invariants this worker holds:
   "no law";
 - the EU Directive row is advisory: it can give `review`, never `fail`;
 - the audit event for a check carries verdicts and the ad's SHA-256, never the
-  ad text.
+  ad text;
+- (RW2) a stored check is never edited: a re-check is a new row in the same
+  lineage (`root_id`), so the verdict an ad got on a day stays exactly as given;
+- (RW2) every finding quotes the span of the ad it was read from, and the
+  parser's labelled set (`tests/range-worker/fixtures/labelled-ads.json`) must
+  pass at 100 percent.
 
 ## What it serves
 
 | Route | Who |
 |---|---|
 | `GET /v1/organizations/{org}/pay-rules` | `range.read` (every role) |
-| `POST /v1/organizations/{org}/pay-checks` | `range.write` (owner, admin, builder) |
+| `POST /v1/organizations/{org}/pay-checks` (201, stored) | `range.write` (owner, admin, builder) |
+| `GET /v1/organizations/{org}/pay-checks` (history; `?overall=`, `?limit=`, `?cursor=`) | `range.read` |
+| `GET /v1/organizations/{org}/pay-checks/{rwc}` (detail, ad text, lineage) | `range.read` |
+| `POST /v1/organizations/{org}/pay-checks/{rwc}/recheck` (optionally edited) | `range.write` |

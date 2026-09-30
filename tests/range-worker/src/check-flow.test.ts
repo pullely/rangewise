@@ -25,7 +25,7 @@ function audit(w: TestWorld): { event_type: string; subject_kind: string; subjec
 
 const PASSING = {
   title: "Senior Accountant",
-  adText: "Compensation: $80,000 – $100,000 per year. Benefits: medical, dental, 401(k), 20 days PTO.",
+  adText: "Compensation: $80,000 – $100,000 per year. Benefits: medical, dental, 401(k), 20 days PTO. To apply, email jobs@acme.example by October 31, 2026.",
   locations: ["US-CO", "us-ny"],
   employeeCount: 50,
 };
@@ -50,7 +50,7 @@ describe("the rules table and the manual check, over HTTP", () => {
   it("runs a check that passes, and audits verdicts without the ad text", async () => {
     const w = world();
     const res = await check(w, OWNER, PASSING);
-    expect(res.status).toBe(200);
+    expect(res.status).toBe(201);
     const { check: c } = (await json(res)).data;
     expect(c.id).toMatch(/^rwc_[0-9a-f]{32}$/);
     expect(c.overall).toBe("pass");
@@ -76,7 +76,7 @@ describe("the rules table and the manual check, over HTTP", () => {
   it("runs a check that fails, naming the deciding rule and its citation", async () => {
     const w = world();
     const res = await check(w, MEMBER, FAILING);
-    expect(res.status).toBe(200);
+    expect(res.status).toBe(201);
     const { check: c } = (await json(res)).data;
     expect(c.overall).toBe("fail");
     const co = c.results.find((r: any) => r.jurisdictionCode === "US-CO");
@@ -105,7 +105,7 @@ describe("the rules table and the manual check, over HTTP", () => {
     expect((await check(w, VIEWER, PASSING)).status).toBe(404);
     expect((await call(w, RULES)).status).toBe(401);
     expect((await call(w, CHECKS, { method: "POST", body: "{}" })).status).toBe(401);
-    expect((await call(w, CHECKS, { headers: as(OWNER) })).status).toBe(405);
+    expect((await call(w, CHECKS, { method: "DELETE", headers: as(OWNER) })).status).toBe(405);
     expect((await call(w, `/v1/organizations/not-an-org/pay-rules`, { headers: as(OWNER) })).status).toBe(404);
     expect(audit(w)).toHaveLength(0);
   });

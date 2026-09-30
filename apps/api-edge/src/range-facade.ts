@@ -5,11 +5,12 @@ import { resolveActor } from "./resolve-actor.js";
 import { createTimings } from "@saas/contracts/timing";
 
 // Rangewise (range-worker). One authenticated lane, /v1/organizations/{org}/…:
-// the pay-transparency rules table (pay-rules) and the job-ad check
-// (pay-checks). resolveActor → actor headers over the RANGE_WORKER binding,
-// like every other org route; the worker runs membership + policy itself.
+// the pay-transparency rules table (pay-rules), the job-ad check and its
+// stored history (pay-checks, pay-checks/{rwc}, pay-checks/{rwc}/recheck —
+// RW2). resolveActor → actor headers over the RANGE_WORKER binding, like every
+// other org route; the worker runs membership + policy itself.
 
-const RANGE_RE = /^\/v1\/organizations\/[^/]+\/pay-(?:rules|checks)$/;
+const RANGE_RE = /^\/v1\/organizations\/[^/]+\/(?:pay-rules|pay-checks(?:\/[^/]+(?:\/recheck)?)?)$/;
 
 const FORWARDED_HEADERS = ["content-type", "content-length", "traceparent", "idempotency-key"];
 const BODY_METHODS = new Set(["POST", "PATCH", "PUT"]);

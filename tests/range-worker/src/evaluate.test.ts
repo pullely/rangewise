@@ -82,7 +82,20 @@ describe("evaluate", () => {
       ["pay_disclosed", "met"],
       ["range_bounded", "met"],
       ["benefits_described", "met"],
+      ["apply_info", "met"],
     ]);
+    // RW2: every finding quotes the span of the ad it came from.
+    const pay = co.requirements.find((r) => r.requirement === "range_bounded")!;
+    expect(pay.evidence?.[0]).toMatchObject({ text: "$80,000 – $100,000" });
+    expect(GOOD_AD.slice(pay.evidence![0]!.start, pay.evidence![0]!.end)).toBe("$80,000 – $100,000");
+  });
+
+  it("RW2: gives Colorado 'review' when the ad does not say how and when to apply", () => {
+    const withoutApply = GOOD_AD.split("\n").filter((line) => !/apply/i.test(line)).join("\n");
+    const co = by(evaluate(extractAd(withoutApply), facts({ locations: ["US-CO", "US-NY"] }), RULES), "US-CO");
+    expect(co.verdict).toBe("review");
+    expect(co.deciding?.requirement).toBe("apply_info");
+    expect(co.deciding?.citation).toContain("C.R.S. § 8-5-201(2)");
   });
 
   it("fails an open-ended ad in Colorado on range_bounded, citing C.R.S. § 8-5-201(2)", () => {

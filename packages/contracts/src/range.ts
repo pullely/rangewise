@@ -43,6 +43,9 @@ export const RANGE_REQUIREMENTS = [
   "spread",
   "benefits_described",
   "on_request",
+  // RW2
+  "pay_currency",
+  "apply_info",
 ] as const;
 export type RangeRequirement = (typeof RANGE_REQUIREMENTS)[number];
 
@@ -55,6 +58,8 @@ export const RANGE_REQUIREMENT_LABELS: Record<RangeRequirement, string> = {
   spread: "Width of the range",
   benefits_described: "Benefits described",
   on_request: "Pay available before the interview",
+  pay_currency: "Pay in the jurisdiction's currency",
+  apply_info: "How and when to apply",
 };
 
 export const RANGE_OUTCOMES = ["met", "failed", "review"] as const;
@@ -173,16 +178,86 @@ export interface ListPayRulesResponse {
 export type PayKind = "range" | "single" | "open_max" | "open_min" | "none";
 export type PayPeriod = "hour" | "day" | "week" | "month" | "year";
 
+/** ISO 4217 code ("USD", "EUR", "PLN", "CAD" …). RW1 read only USD, EUR and GBP. */
+export type RangeCurrency = string;
+
+/** The currencies of the EU's member states: the euro and the seven that have not adopted it. */
+export const EU_CURRENCIES: readonly RangeCurrency[] = ["EUR", "BGN", "CZK", "DKK", "HUF", "PLN", "RON", "SEK"];
+
+/** How many of a period make a year, for normalising pay to annual (design §2.1, plan RW2). */
+export const PERIODS_PER_YEAR: Record<PayPeriod, number> = { hour: 2080, day: 260, week: 52, month: 12, year: 1 };
+
+/** A quoted piece of the ad: the evidence a finding came from. `start`/`end` index the ad text. */
+export interface EvidenceSpan {
+  text: string;
+  start: number;
+  end: number;
+}
+
 export interface ExtractedPay {
   kind: PayKind;
   min: number | null;
   max: number | null;
-  currency: "USD" | "EUR" | "GBP" | null;
+  currency: RangeCurrency | null;
   period: PayPeriod | null;
   /** The ad text the pay statement was read from ("" when none). */
   text: string;
   start: number | null;
   end: number | null;
+  // ── RW2 (extensions; RW1 fields unchanged) ──
+  /** True when no period was written and it was inferred from the amount's size. */
+  periodInferred?: boolean;
+  /** The pay normalised to a year (2,080 h, 260 d, 52 wk, 12 mo; hourly uses the ad's weekly hours when stated). */
+  annualMin?: number | null;
+  annualMax?: number | null;
+  /** Location codes this statement is written for ("Denver: …" → US-CO); empty when it applies to the whole ad. */
+  locations?: string[];
+  /** The place label the locations were read from ("Denver"), or null. */
+  scope?: string | null;
+}
+
+export const NON_PAY_KINDS = [
+  "sign_on_bonus",
+  "bonus",
+  "commission",
+  "tips",
+  "equity",
+  "retirement",
+  "relocation",
+  "stipend",
+  "referral",
+  "funding",
+  "revenue",
+  "other",
+] as const;
+export type NonPayKind = (typeof NON_PAY_KINDS)[number];
+
+export const NON_PAY_LABELS: Record<NonPayKind, string> = {
+  sign_on_bonus: "Sign-on bonus",
+  bonus: "Bonus",
+  commission: "Commission or on-target earnings",
+  tips: "Tips",
+  equity: "Equity",
+  retirement: "Retirement contribution",
+  relocation: "Relocation",
+  stipend: "Stipend, allowance or reimbursement",
+  referral: "Referral bonus",
+  funding: "Funding or valuation",
+  revenue: "Revenue or business figure",
+  other: "Other money that is not pay",
+};
+
+/** Money in the ad that is not the position's pay: never counted as pay, reported as evidence. */
+export interface NonPayMoney extends EvidenceSpan {
+  kind: NonPayKind;
+}
+
+/** Colorado's "how and when to apply" (INFO #9A §3): where the ad says how to apply and by when. */
+export interface ApplyInfo {
+  how: EvidenceSpan | null;
+  when: EvidenceSpan | null;
+  /** "Open until filled" — the guidance says it is not a deadline. */
+  untilFilled: EvidenceSpan | null;
 }
 
 export const BENEFIT_CATEGORIES = ["health", "retirement", "paid_time_off", "insurance", "equity", "bonus"] as const;
@@ -198,12 +273,25 @@ export const BENEFIT_CATEGORY_LABELS: Record<BenefitCategory, string> = {
 };
 
 export interface ExtractedAd {
+  /** The ad's main pay statement: the first bounded range, else a single figure, else an open-ended amount. */
   pay: ExtractedPay;
   /** Vague pay words found ("competitive", "DOE"); they never count as pay. */
   vaguePay: string[];
   benefits: BenefitCategory[];
   /** Filler phrases found next to benefits ("and more", "etc."). */
   benefitFiller: string[];
+  // ── RW2 (extensions) ──
+  /** Every pay statement in the ad, in order, each with its span and the locations it is written for. */
+  statements?: ExtractedPay[];
+  /** Money that is not pay (bonuses, funding, 401(k) contributions …), with spans. */
+  nonPay?: NonPayMoney[];
+  apply?: ApplyInfo;
+  /** "30 hours per week", when stated; used to annualise hourly pay. */
+  weeklyHours?: number | null;
+  benefitEvidence?: (EvidenceSpan & { category: BenefitCategory })[];
+  vagueEvidence?: EvidenceSpan[];
+  /** The extractor's version, stored with each check. */
+  engineVersion?: string;
 }
 
 export interface RequirementResult {
@@ -211,6 +299,8 @@ export interface RequirementResult {
   outcome: RangeOutcome;
   explanation: string;
   citation: string;
+  /** RW2: the spans of the ad this finding was read from (empty when it rests on the stated facts). */
+  evidence?: EvidenceSpan[];
 }
 
 export interface JurisdictionResult {
@@ -226,6 +316,8 @@ export interface JurisdictionResult {
   sourceUrl: string | null;
   deciding: RequirementResult | null;
   requirements: RequirementResult[];
+  /** RW2: the pay statement applied to this jurisdiction (its own per-location range when the ad gives one). */
+  pay?: ExtractedPay | null;
 }
 
 export interface PayCheckRequest {
@@ -251,18 +343,80 @@ export interface PublicPayCheck {
   results: JurisdictionResult[];
   rulesVersion: string;
   checkedAt: string;
+  // ── RW2: stored checks ──
+  /** The rule versions the verdicts used, e.g. ["US-CO@1", "US-NY@1"]. */
+  ruleIds?: string[];
+  /** The check this one re-runs, or null for an original check. */
+  recheckedFrom?: string | null;
+  /** The first check of this ad's lineage (itself for an original). */
+  rootId?: string;
+  engineVersion?: string;
 }
 
 export interface PayCheckResponse {
   check: PublicPayCheck;
 }
 
-export const RANGE_EVENT_TYPES = ["range.check.run"] as const;
+/** One row of the check history. */
+export interface PayCheckSummary {
+  id: string;
+  title: string;
+  overall: RangeVerdict;
+  checkDate: string;
+  locations: string[];
+  remote: RangeRemoteArea;
+  employeeCount: number;
+  adSha256: string;
+  /** describePay() of the ad's main pay statement. */
+  payText: string;
+  ruleIds: string[];
+  rulesVersion: string;
+  recheckedFrom: string | null;
+  rootId: string;
+  checkedAt: string;
+}
+
+export interface ListPayChecksResponse {
+  checks: PayCheckSummary[];
+  /** Pass as `?cursor=` for the next page; null on the last page. */
+  nextCursor: string | null;
+}
+
+export interface PayCheckDetailResponse {
+  check: PublicPayCheck;
+  /** The ad text as checked (the evidence spans index it). */
+  adText: string;
+  /** Every check in this ad's lineage (the original and its re-checks), oldest first. */
+  lineage: PayCheckSummary[];
+}
+
+/** POST …/pay-checks/{id}/recheck: every field optional; omitted ones are the stored check's. `checkDate` defaults to today. */
+export type RecheckRequest = Partial<PayCheckRequest>;
+
+export interface VerdictChange {
+  location: string;
+  from: RangeVerdict | null;
+  to: RangeVerdict | null;
+}
+
+export interface RecheckResponse {
+  check: PublicPayCheck;
+  previous: PayCheckSummary;
+  /** Jurisdictions whose verdict differs from the previous check. */
+  changes: VerdictChange[];
+}
+
+export const RANGE_EVENT_TYPES = ["range.check.run", "range.check.rechecked"] as const;
 export type RangeEventType = (typeof RANGE_EVENT_TYPES)[number];
 
 export const PAY_CHECK_AD_MAX = 20_000;
 export const PAY_CHECK_LOCATIONS_MAX = 60;
 export const PAY_CHECK_EMPLOYEES_MAX = 1_000_000;
+
+/** How bad a verdict is, for "did it get worse": fail 2, review 1, everything else 0. */
+export function verdictRank(v: RangeVerdict | null | undefined): number {
+  return v === "fail" ? 2 : v === "review" ? 1 : 0;
+}
 
 /** The worst verdict among results (`not_covered` when there are none). */
 export function overallVerdict(verdicts: readonly RangeVerdict[]): RangeVerdict {
@@ -271,14 +425,16 @@ export function overallVerdict(verdicts: readonly RangeVerdict[]): RangeVerdict 
 }
 
 const PERIOD_WORDS: Record<PayPeriod, string> = { hour: "per hour", day: "per day", week: "per week", month: "per month", year: "per year" };
-const CURRENCY_SIGN: Record<"USD" | "EUR" | "GBP", string> = { USD: "$", EUR: "€", GBP: "£" };
+const CURRENCY_SIGN: Record<string, string> = { USD: "$", EUR: "€", GBP: "£" };
 
 /** "$80,000–$100,000 per year", "up to €60,000", "no pay stated". */
 export function describePay(pay: ExtractedPay): string {
   const money = (n: number | null): string => {
     if (n === null) return "?";
-    const sign = pay.currency ? CURRENCY_SIGN[pay.currency] : "";
-    return `${sign}${n.toLocaleString("en-US", { maximumFractionDigits: 2 })}`;
+    const amount = n.toLocaleString("en-US", { maximumFractionDigits: 2 });
+    if (!pay.currency) return amount;
+    const sign = CURRENCY_SIGN[pay.currency];
+    return sign ? `${sign}${amount}` : `${pay.currency} ${amount}`;
   };
   const per = pay.period ? ` ${PERIOD_WORDS[pay.period]}` : "";
   switch (pay.kind) {

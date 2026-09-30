@@ -19,7 +19,7 @@ This doc set, merged to `main` and attached to the epic with `orun spec push`.
 - the five documents are on `main`
 - `orun spec list --epic rangewise-pay-range-compliance` shows them
 
-## RW1 — the jurisdiction rules table and a manual check
+## RW1 — the jurisdiction rules table and a manual check ✅
 
 This milestone builds the `range` bounded context end to end:
 

@@ -1,0 +1,42 @@
+apiVersion: orun.io/v1
+kind: TaskContract
+metadata:
+  name: RW-3
+spec:
+  goal: Rangewise reads every pay statement in an ad (per-location ranges, US and EU formats, hourly to annual, non-pay money ignored, Colorado's how-and-when-to-apply) and stores each check with its evidence spans and rule versions, with history, detail and re-check.
+  # Component refs, fully qualified (runbook trap 15). packages/db changes
+  # (migration 210_range_checks + the range repository) and packages/contracts
+  # changes, so every worker's component.yaml is touched (trap 17).
+  affects:
+    - default/rangewise/db
+    - default/rangewise/db-tests
+    - default/rangewise/db-migrate
+    - default/rangewise/contracts
+    - default/rangewise/contracts-tests
+    - default/rangewise/sdk
+    - default/rangewise/range-worker
+    - default/rangewise/range-worker-tests
+    - default/rangewise/api-edge
+    - default/rangewise/api-edge-tests
+    - default/rangewise/events-worker
+    - default/rangewise/notifications-worker
+    - default/rangewise/identity-worker
+    - default/rangewise/membership-worker
+    - default/rangewise/web-console-next
+    - default/rangewise/web-console-next-tests
+    - default/rangewise/admin-worker
+    - default/rangewise/billing-worker
+    - default/rangewise/config-worker
+    - default/rangewise/integrations-worker
+    - default/rangewise/metering-worker
+    - default/rangewise/policy-worker
+    - default/rangewise/projects-worker
+    - default/rangewise/webhooks-worker
+  doneWhen:
+    - migration 210_range_checks replays twice green on node:sqlite; every write uses RETURNING and every seed ON CONFLICT DO NOTHING
+    - the labelled set of at least 60 ad snippets passes at 100 percent in CI
+    - a stored check lists the span each finding came from and US-CO@1 among its rules
+    - a re-check after an edit or a rule migration is a new row and leaves the original unchanged
+    - a per-location ad gives Colorado and New York their own ranges
+    - api-edge claims /pay-checks/{id} and /pay-checks/{id}/recheck; a non-member gets 404
+  gates: []
