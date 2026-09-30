@@ -15,6 +15,13 @@ export const parseOrgPublicId = (id: string): Uuid | null => uuidFromPublicId(id
 export const checkPublicId = (uuid: string): string => `rwc_${uuidToHex(uuid)}`;
 export const parseCheckPublicId = (id: string): Uuid | null => uuidFromPublicId(id, "rwc");
 
+/** A saved ad (RW3). */
+export const watchedAdPublicId = (uuid: string): string => `rwa_${uuidToHex(uuid)}`;
+export const parseWatchedAdPublicId = (id: string): Uuid | null => uuidFromPublicId(id, "rwa");
+
+/** A row of the alert ledger (RW3). */
+export const alertPublicId = (uuid: string): string => `rwn_${uuidToHex(uuid)}`;
+
 /**
  * The actor id in the shape a UUID column takes: pass a UUID through, decode a
  * `usr_<hex>` public id, and write null rather than garbage for anything else.

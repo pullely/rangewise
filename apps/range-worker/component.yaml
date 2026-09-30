@@ -2,7 +2,7 @@ apiVersion: sourceplane.io/v1
 kind: Component
 metadata:
   name: range-worker
-  description: Cloudflare Worker for the pay-transparency rules table, job-ad checks and their stored history (and, from RW3, the weekly scan)
+  description: Cloudflare Worker for the pay-transparency rules table, job-ad checks and their stored history, saved ads with the daily sweep and worsening alerts, and the compliance report
 spec:
   type: cloudflare-worker-turbo
   lifecycle: production
@@ -15,6 +15,8 @@ spec:
     - component: db-migrate
     - component: membership-worker
     - component: policy-worker
+    # RW3: the NOTIFICATIONS_WORKER binding names this service.
+    - component: notifications-worker
   # BF6 wiring documents from orun secrets (SEC-JOB): lease-published by
   # the infra components; wire-live renders the wrangler template from
   # these instead of Secrets Manager documents.

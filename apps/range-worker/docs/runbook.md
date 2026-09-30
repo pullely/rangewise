@@ -18,3 +18,13 @@
   with.
 - **A stored check looks wrong:** re-check it (`POST …/pay-checks/{rwc}/recheck`).
   The original row is evidence and is never edited.
+- **The daily sweep:** one log line per run, `msg: "range watch sweep"`, with
+  `considered`, `scanned`, `failed`, `alerted` and `alreadyClaimed`. It scans at
+  most 25 due ads per run, soonest due first; the rest are due the next day.
+  `POST …/watched-ads/sweep` runs the same sweep for one org at once.
+- **An alert says "accepted" but nobody got an email:** "accepted" means
+  notifications-worker took the send. No sending domain is held (runbook trap
+  27), so Cloudflare Email refuses it downstream; the notification row ends
+  `failed` there.
+- **A URL ad keeps failing:** see the ad's `lastFetch` (`refused`, `failed`,
+  `too_large`). A failed window is retried once on a later day.

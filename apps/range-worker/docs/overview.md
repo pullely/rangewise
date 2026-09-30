@@ -22,6 +22,15 @@ The invariants this worker holds:
   ad text;
 - (RW2) a stored check is never edited: a re-check is a new row in the same
   lineage (`root_id`), so the verdict an ad got on a day stays exactly as given;
+- (RW3) a saved ad is scanned once per due window (new/edited revision, a
+  changed rules fingerprint, or a week since its last scan): the claim is
+  `UNIQUE (ad_id, window_key)` in `range_scan_runs`;
+- (RW3) a worsening is emailed once: the alert row is `UNIQUE (ad_id,
+  check_id)` and is written before the send; alerts go only to the member who
+  saved the ad;
+- (RW3) a careers URL is fetched only over https, port 443, from a public host
+  name or public IPv4 address, following at most 3 redirects that each pass the
+  same test, within 10 s and 1 MB;
 - (RW2) every finding quotes the span of the ad it was read from, and the
   parser's labelled set (`tests/range-worker/fixtures/labelled-ads.json`) must
   pass at 100 percent.
@@ -35,3 +44,9 @@ The invariants this worker holds:
 | `GET /v1/organizations/{org}/pay-checks` (history; `?overall=`, `?limit=`, `?cursor=`) | `range.read` |
 | `GET /v1/organizations/{org}/pay-checks/{rwc}` (detail, ad text, lineage) | `range.read` |
 | `POST /v1/organizations/{org}/pay-checks/{rwc}/recheck` (optionally edited) | `range.write` |
+| `GET` / `POST /v1/organizations/{org}/watched-ads` (RW3: pasted text or a public https careers URL) | `range.read` / `range.write` |
+| `GET` / `PATCH /v1/organizations/{org}/watched-ads/{rwa}` (edit → due today; `active` pauses) | `range.read` / `range.write` |
+| `POST /v1/organizations/{org}/watched-ads/{rwa}/scan` (scan now) | `range.write` |
+| `POST /v1/organizations/{org}/watched-ads/sweep` (today's sweep, this org) | `range.write` |
+| `GET /v1/organizations/{org}/reports/compliance` (`?format=csv`) | `range.read` |
+| `scheduled()` daily at 06:00 UTC: the sweep over every org | — |

@@ -11,6 +11,8 @@ import {
   FolderKanban,
   ClipboardCheck,
   Scale,
+  BellRing,
+  FileBarChart,
   Boxes,
   KeyRound,
   Settings,
@@ -38,6 +40,8 @@ import { SidebarFind } from "./sidebar-find";
 const ICONS: Record<string, LucideIcon> = {
   ClipboardCheck,
   Scale,
+  BellRing,
+  FileBarChart,
   Building2,
   FolderKanban,
   Boxes,

@@ -50,6 +50,11 @@ describe("api-edge range facade", () => {
       "/v1/organizations/org_a/pay-checks",
       "/v1/organizations/org_a/pay-checks/rwc_b",
       "/v1/organizations/org_a/pay-checks/rwc_b/recheck",
+      "/v1/organizations/org_a/watched-ads",
+      "/v1/organizations/org_a/watched-ads/sweep",
+      "/v1/organizations/org_a/watched-ads/rwa_b",
+      "/v1/organizations/org_a/watched-ads/rwa_b/scan",
+      "/v1/organizations/org_a/reports/compliance",
     ]) {
       expect(isRangeRoute(p)).toBe(true);
     }
@@ -61,6 +66,10 @@ describe("api-edge range facade", () => {
       "/v1/organizations/org_a/pay-checks/rwc_b/recheck/x",
       "/v1/organizations/org_a/pay-checks//recheck",
       "/v1/organizations/org_a/pay-checksx/rwc_b",
+      "/v1/organizations/org_a/watched-ads/rwa_b/scan/x",
+      "/v1/organizations/org_a/watched-ads/rwa_b/other",
+      "/v1/organizations/org_a/reports",
+      "/v1/organizations/org_a/reports/other",
       "/v1/organizations/org_a/pay-rules/US-CO",
       "/v1/organizations/org_a/pay-rulesx",
       "/v1/organizations/org_a/pay-other",

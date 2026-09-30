@@ -13,6 +13,9 @@ export const qk = {
   payRules: (orgId: string) => ["payRules", orgId] as const,
   payChecks: (orgId: string, overall: string) => ["payChecks", orgId, overall] as const,
   payCheck: (orgId: string, checkId: string) => ["payCheck", orgId, checkId] as const,
+  watchedAds: (orgId: string) => ["watchedAds", orgId] as const,
+  watchedAd: (orgId: string, adId: string) => ["watchedAd", orgId, adId] as const,
+  complianceReport: (orgId: string) => ["complianceReport", orgId] as const,
   environments: (orgId: string, projectId: string) =>
     ["environments", orgId, projectId] as const,
   members: (orgId: string) => ["members", orgId] as const,

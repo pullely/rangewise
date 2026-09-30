@@ -194,6 +194,28 @@ describe("email templates", () => {
   test("returns null for unknown template keys", () => {
     expect(renderEmailTemplate("nope.unknown", {})).toBeNull();
   });
+
+  it("renders Rangewise's range.ad.worsened alert, one line per jurisdiction, escaped", () => {
+    const rendered = renderEmailTemplate(
+      "range.ad.worsened",
+      {
+        adTitle: "Account Executive <script>",
+        previousOverall: "Passes",
+        overall: "Fails",
+        changes: "Colorado: Passes → Fails — Range has a bottom and a top: \"up to $95,000\" has no minimum.\nNew York State: Passes → Fails",
+        sourceUrl: "https://careers.acme.example/jobs/7",
+        checkDate: "2026-09-30",
+      },
+      { brandName: "Rangewise" },
+    );
+    expect(rendered).not.toBeNull();
+    expect(rendered!.subject).toBe("A saved job ad got worse: Account Executive <script> (Passes → Fails)");
+    expect(rendered!.text).toContain("- Colorado: Passes → Fails");
+    expect(rendered!.text).toContain("- New York State: Passes → Fails");
+    expect(rendered!.html).toContain("&lt;script&gt;");
+    expect(rendered!.html).not.toContain("<script>");
+    expect(rendered!.html.match(/<li /g)).toHaveLength(2);
+  });
 });
 
 describe("resolveProvider cloudflare-email wiring", () => {

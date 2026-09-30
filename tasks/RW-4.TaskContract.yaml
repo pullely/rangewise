@@ -1,0 +1,34 @@
+apiVersion: orun.io/v1
+kind: TaskContract
+metadata:
+  name: RW-4
+spec:
+  goal: Saved ads (pasted text or a public careers-page URL) are re-checked by a daily cron weekly and when a rule version changes, the recruiter is emailed once when a verdict gets worse, and each org gets a compliance report.
+  # Component refs, fully qualified (runbook trap 15). The packages/db change
+  # (220_range_watch + the range repository) is imported only by range-worker
+  # and applied by db-migrate; events-worker gains the rwa_ prefix,
+  # notifications-worker the range.ad.worsened template, api-edge the routes.
+  affects:
+    - default/rangewise/db
+    - default/rangewise/db-tests
+    - default/rangewise/db-migrate
+    - default/rangewise/contracts
+    - default/rangewise/contracts-tests
+    - default/rangewise/sdk
+    - default/rangewise/range-worker
+    - default/rangewise/range-worker-tests
+    - default/rangewise/api-edge
+    - default/rangewise/api-edge-tests
+    - default/rangewise/events-worker
+    - default/rangewise/events-worker-tests
+    - default/rangewise/notifications-worker
+    - default/rangewise/notifications-worker-tests
+    - default/rangewise/web-console-next
+    - default/rangewise/web-console-next-tests
+  doneWhen:
+    - migration 220_range_watch replays twice green on node:sqlite; every write uses RETURNING
+    - a saved ad swept twice on the same day is re-checked once; a rule-version change re-checks it on the next tick
+    - a worse verdict sends exactly one range.ad.worsened alert, accepted by notifications-worker
+    - a URL ad is fetched with a 1 MB cap and 10 s timeout; private, loopback, non-https and odd-port URLs are refused
+    - the compliance report lists every saved ad's latest verdict, as JSON and CSV
+  gates: []

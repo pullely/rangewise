@@ -18,6 +18,8 @@ export interface Crumb {
 const SEGMENT_LABELS: Record<string, string> = {
   "pay-checks": "Check an ad",
   "pay-rules": "Pay rules",
+  "watched-ads": "Saved ads",
+  "compliance-report": "Compliance report",
   projects: "Projects",
   environments: "Environments",
   usage: "Usage & quota",

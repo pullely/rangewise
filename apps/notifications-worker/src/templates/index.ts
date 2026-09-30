@@ -169,7 +169,44 @@ const renderInvitationAccepted: TemplateRenderer = (data, opts) => {
   return { subject, html, text };
 };
 
+/**
+ * Rangewise: a saved job ad's verdict got worse at its latest scan (a rule
+ * version changed, the careers page changed, or the ad was edited). Sent once
+ * per worsening to the recruiter who saved the ad. `changes` is one line per
+ * jurisdiction: "Colorado: Passes → Fails — Range has a bottom and a top: …".
+ */
+const renderRangeAdWorsened: TemplateRenderer = (data, opts) => {
+  const adTitle = str(data, "adTitle") || "Untitled ad";
+  const previous = str(data, "previousOverall");
+  const overall = str(data, "overall");
+  const changes = str(data, "changes")
+    .split("\n")
+    .map((l) => l.trim())
+    .filter(Boolean);
+  const sourceUrl = str(data, "sourceUrl");
+  const checkDate = str(data, "checkDate");
+  const brand = opts.brandName ?? "";
+  const subject = `A saved job ad got worse: ${adTitle} (${previous} → ${overall})`;
+  const lead = `Rangewise re-checked your saved ad "${adTitle}"${checkDate ? ` against the rules in force on ${checkDate}` : ""}, and its verdict got worse: ${previous} → ${overall}.`;
+  const note = "Rangewise is not legal advice: each line names the rule that decided it, as cited in Rangewise's rules table.";
+  const text = [lead, ...changes.map((c) => `- ${c}`), ...(sourceUrl ? [`The ad: ${sourceUrl}`] : []), note].join("\n\n");
+  const html = htmlShell(
+    "A saved job ad got worse",
+    [
+      `<p style="margin:0 0 16px;font-size:14px;">${escapeHtml(lead)}</p>`,
+      changes.length
+        ? `<ul style="margin:0 0 16px;padding-left:20px;font-size:14px;">${changes.map((c) => `<li style="margin:0 0 6px;">${escapeHtml(c)}</li>`).join("")}</ul>`
+        : "",
+      sourceUrl ? `<p style="margin:0 0 16px;font-size:14px;">The ad: ${escapeHtml(sourceUrl)}</p>` : "",
+      `<p style="margin:0 0 16px;font-size:12px;color:#666;">${escapeHtml(note)}</p>`,
+    ].join(""),
+    escapeHtml(brand ? `Sent by ${brand}` : "Sent by Rangewise"),
+  );
+  return { subject, html, text };
+};
+
 const TEMPLATES: Record<string, TemplateRenderer> = {
+  "range.ad.worsened": renderRangeAdWorsened,
   "auth.magic_link": renderMagicLink,
   "invitation.created": renderInvitationCreated,
   "invitation.accepted": renderInvitationAccepted,

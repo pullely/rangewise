@@ -7,10 +7,14 @@ import { createTimings } from "@saas/contracts/timing";
 // Rangewise (range-worker). One authenticated lane, /v1/organizations/{org}/…:
 // the pay-transparency rules table (pay-rules), the job-ad check and its
 // stored history (pay-checks, pay-checks/{rwc}, pay-checks/{rwc}/recheck —
-// RW2). resolveActor → actor headers over the RANGE_WORKER binding, like every
-// other org route; the worker runs membership + policy itself.
+// RW2), saved ads and their scans (watched-ads, watched-ads/sweep,
+// watched-ads/{rwa}, watched-ads/{rwa}/scan) and the compliance report
+// (reports/compliance — RW3). resolveActor → actor headers over the
+// RANGE_WORKER binding, like every other org route; the worker runs membership
+// + policy itself.
 
-const RANGE_RE = /^\/v1\/organizations\/[^/]+\/(?:pay-rules|pay-checks(?:\/[^/]+(?:\/recheck)?)?)$/;
+const RANGE_RE =
+  /^\/v1\/organizations\/[^/]+\/(?:pay-rules|pay-checks(?:\/[^/]+(?:\/recheck)?)?|watched-ads(?:\/[^/]+(?:\/scan)?)?|reports\/compliance)$/;
 
 const FORWARDED_HEADERS = ["content-type", "content-length", "traceparent", "idempotency-key"];
 const BODY_METHODS = new Set(["POST", "PATCH", "PUT"]);
