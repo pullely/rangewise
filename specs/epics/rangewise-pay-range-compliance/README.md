@@ -31,14 +31,14 @@ recruiter when a live ad stops complying.
 
 | Field | Value |
 |-------|-------|
-| Status | In progress: RW0 ✅ (#9), RW1 ✅ (#10), RW2 ✅ (#11), RW3 in review |
+| Status | ✅ Shipped — RW0 ✅ (#9), RW1 ✅ (#10), RW2 ✅ (#11), RW3 ✅ (#12) |
 | Cluster | **RW** (RW0–RW3) |
 | Owner(s) | `apps/range-worker` (the rules table reader, the check engine, the stored checks, the weekly scan) · `apps/api-edge` (the facade) · `packages/db` (migrations `200`–`220`) · `packages/contracts` + `packages/sdk` (the wire) · `apps/notifications-worker` (the alert templates, RW3) · `apps/web-console-next` (the surface) |
 | Builds on | `cirrus baseline-v12`: organizations as employers or agencies, members as recruiters, the policy engine for who may check, `notifications-worker` for alerts, the audit trail in `events-worker`, api-edge rate limiting, cron triggers |
 | Changes | Adds one bounded context (`range`), one worker, one cron trigger (RW3). Turns the Solo profile off, because a hiring team has several recruiters and an agency serves several clients. Every baseline context is reused, and none is changed beyond new actions, templates and subject prefixes. |
 | Decisions locked | (1) The rules table is data in D1, seeded and changed only by migrations, never edited through the API. A rule change is a new *version* of a jurisdiction's rule with its own `effective_from`, so a check can be replayed against the rules that applied on its date. (2) A jurisdiction is seeded only when its citation was read from the primary text or the official agency's guidance. An unverifiable jurisdiction is an open risk, not a guessed row. (3) The check is deterministic: a regex-and-rules engine with unit tests, no LLM. (4) Verdicts are `pass`, `fail`, `review` (a human must decide: an unsettled point of law), `not_applicable` (the employer is below the size threshold), `not_in_force` (the rule starts after the check date) and `not_covered` (Rangewise has no rule for that place). The console never says "compliant with the law". It says "passes Rangewise's rule for X, as cited". (5) The EU Directive binds member states, not employers. Its row gives advice and never fails an ad. National transposition rows come later. |
 | Gate | RW1 is the first user-visible change (the rules table and a manual check). RW2 makes the parser robust and stores checks with their evidence. RW3 keeps saved ads checked without anyone pressing a button. |
-| Shipped as | |
+| Shipped as | RW0 #9 (85b65da, docs); RW1 #10 (e3ff164, `main` run 35922168119, 66/66); RW2 #11 (c33ec46, run 36649786592, 59/59 after one `--failed` rerun of a control-plane connection reset); RW3 #12 (435bd2e, run 36653677271, 31/31 on the first attempt). Live at `https://rangewise-api-edge-{stage,prod}.nexo-7be.workers.dev` and `https://rangewise-web-console-next-{stage,prod}.nexo-7be.workers.dev`. Proven end to end on stage on 2026-09-30 after the final deploy (61/61: every milestone plus cross-org) and checked on prod (17/17). Prod sign-in and every email wait on a held sending domain (runbook trap 27). |
 
 ## Read order
 
