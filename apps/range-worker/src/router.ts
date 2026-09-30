@@ -1,7 +1,7 @@
 import type { Env } from "./env.js";
 import { handleHealth } from "./handlers/health.js";
 import { handleListRules } from "./handlers/rules.js";
-import { handleRunCheck } from "./handlers/checks.js";
+import { handleGetCheck, handleListChecks, handleRecheck, handleRunCheck } from "./handlers/checks.js";
 import { errorResponse, methodNotAllowed, notFound } from "./http.js";
 import { generateRequestId, parseOrgPublicId } from "./ids.js";
 
@@ -34,6 +34,8 @@ function resolveActor(request: Request): ActorContext | null {
 // Every route is org-scoped: /v1/organizations/{org}/pay-rules | pay-checks
 const RULES_RE = /^\/v1\/organizations\/([^/]+)\/pay-rules$/;
 const CHECKS_RE = /^\/v1\/organizations\/([^/]+)\/pay-checks$/;
+const CHECK_RE = /^\/v1\/organizations\/([^/]+)\/pay-checks\/([^/]+)$/;
+const RECHECK_RE = /^\/v1\/organizations\/([^/]+)\/pay-checks\/([^/]+)\/recheck$/;
 
 function unauthenticated(requestId: string): Response {
   return errorResponse("unauthenticated", "Authentication required", 401, requestId);
@@ -54,10 +56,26 @@ async function routeOrg(request: Request, env: Env, requestId: string, path: str
   if ((m = path.match(CHECKS_RE))) {
     const org = parseOrgPublicId(m[1]!);
     if (!org) return notFound(requestId);
+    if (method !== "POST" && method !== "GET") return methodNotAllowed(requestId);
+    const actor = resolveActor(request);
+    if (!actor) return unauthenticated(requestId);
+    return method === "POST" ? handleRunCheck(request, env, requestId, actor, org) : handleListChecks(request, env, requestId, actor, org);
+  }
+  if ((m = path.match(CHECK_RE))) {
+    const org = parseOrgPublicId(m[1]!);
+    if (!org) return notFound(requestId);
+    if (method !== "GET") return methodNotAllowed(requestId);
+    const actor = resolveActor(request);
+    if (!actor) return unauthenticated(requestId);
+    return handleGetCheck(env, requestId, actor, org, m[2]!);
+  }
+  if ((m = path.match(RECHECK_RE))) {
+    const org = parseOrgPublicId(m[1]!);
+    if (!org) return notFound(requestId);
     if (method !== "POST") return methodNotAllowed(requestId);
     const actor = resolveActor(request);
     if (!actor) return unauthenticated(requestId);
-    return handleRunCheck(request, env, requestId, actor, org);
+    return handleRecheck(request, env, requestId, actor, org, m[2]!);
   }
   return null;
 }

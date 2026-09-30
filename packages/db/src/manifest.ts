@@ -192,5 +192,14 @@ export const manifest: MigrationManifest = {
       description:
         "Pay-transparency rules table (RW1) — the jurisdictions whose rules Rangewise applies to job ads, and one versioned row per rule (effective dates, employer-size threshold, what counts as a compliant range, benefits, remote coverage) seeded with nine verified, cited rows; written only by migrations",
     },
+    {
+      id: "210_range_checks",
+      context: "range",
+      path: "210_range_checks/up.sql",
+      checksum:
+        "5e10de22dda08dfc65bc874f7dd5a000fde1842c765fd63eaef8b20879673820",
+      description:
+        "Stored pay checks (RW2) — every check of a job ad with its text, the facts it was checked under, the full result with evidence spans, and the rule versions used; never edited, a re-check is a new row in the same lineage",
+    },
   ],
 };
