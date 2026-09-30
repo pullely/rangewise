@@ -48,6 +48,8 @@ describe("api-edge range facade", () => {
     for (const p of [
       "/v1/organizations/org_a/pay-rules",
       "/v1/organizations/org_a/pay-checks",
+      "/v1/organizations/org_a/pay-checks/rwc_b",
+      "/v1/organizations/org_a/pay-checks/rwc_b/recheck",
     ]) {
       expect(isRangeRoute(p)).toBe(true);
     }
@@ -55,7 +57,10 @@ describe("api-edge range facade", () => {
       "/v1/organizations/org_a",
       "/v1/organizations/org_a/projects",
       "/v1/organizations/org_a/members",
-      "/v1/organizations/org_a/pay-checks/rwc_b",
+      "/v1/organizations/org_a/pay-checks/rwc_b/other",
+      "/v1/organizations/org_a/pay-checks/rwc_b/recheck/x",
+      "/v1/organizations/org_a/pay-checks//recheck",
+      "/v1/organizations/org_a/pay-checksx/rwc_b",
       "/v1/organizations/org_a/pay-rules/US-CO",
       "/v1/organizations/org_a/pay-rulesx",
       "/v1/organizations/org_a/pay-other",

@@ -2,7 +2,7 @@ apiVersion: sourceplane.io/v1
 kind: Component
 metadata:
   name: range-worker
-  description: Cloudflare Worker for the pay-transparency rules table and job-ad checks (and, from RW2/RW3, stored checks and the weekly scan)
+  description: Cloudflare Worker for the pay-transparency rules table, job-ad checks and their stored history (and, from RW3, the weekly scan)
 spec:
   type: cloudflare-worker-turbo
   lifecycle: production

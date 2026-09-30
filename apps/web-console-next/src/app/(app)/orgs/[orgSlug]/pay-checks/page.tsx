@@ -6,24 +6,50 @@ import { useParams } from "next/navigation";
 import { ClipboardCheck } from "lucide-react";
 import { OrgScope } from "@/components/shell/org-scope";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input, Textarea } from "@/components/ui/input";
 import { Table, TBody, TD, TH, THead, TR } from "@/components/ui/table";
 import { useToast } from "@/components/ui/toast";
 import { useSession } from "@/lib/session";
 import { useApiQuery, qk } from "@/lib/query";
 import { wrap } from "@/lib/api";
-import { Citation, VerdictBadge } from "@/components/range/badges";
+import { VerdictBadge } from "@/components/range/badges";
+import { CheckResult } from "@/components/range/result";
 import {
-  BENEFIT_CATEGORY_LABELS,
   RANGE_REMOTE_AREAS,
   RANGE_REMOTE_LABELS,
-  RANGE_REQUIREMENT_LABELS,
-  describePay,
+  RANGE_VERDICTS,
+  RANGE_VERDICT_LABELS,
   type PayCheckRequest,
   type PublicPayCheck,
   type RangeRemoteArea,
 } from "@saas/contracts/range";
+
+/** The last locations, remote area and headcount, per viewer and org (browser storage; a convenience, never required). */
+const lastInputsKey = (orgId: string): string => `rangewise.lastCheck.${orgId}`;
+interface LastInputs {
+  locations: string[];
+  remote: RangeRemoteArea;
+  employees: string;
+}
+function readLast(orgId: string): LastInputs | null {
+  try {
+    const raw = window.localStorage.getItem(lastInputsKey(orgId));
+    if (!raw) return null;
+    const v = JSON.parse(raw) as Partial<LastInputs>;
+    if (!Array.isArray(v.locations) || typeof v.remote !== "string" || typeof v.employees !== "string") return null;
+    return { locations: v.locations.map(String), remote: v.remote as RangeRemoteArea, employees: v.employees };
+  } catch {
+    return null;
+  }
+}
+function writeLast(orgId: string, v: LastInputs): void {
+  try {
+    window.localStorage.setItem(lastInputsKey(orgId), JSON.stringify(v));
+  } catch {
+    /* storage unavailable: nothing to remember */
+  }
+}
 
 const SELECT = "h-9 w-full rounded-md border bg-background px-3 text-sm";
 const FIELD = "block text-sm font-medium mt-3 mb-1";
@@ -46,6 +72,19 @@ function Inner({ orgId, orgSlug }: { orgId: string; orgSlug: string }) {
   const [checkDate, setCheckDate] = React.useState(() => new Date().toISOString().slice(0, 10));
   const [busy, setBusy] = React.useState(false);
   const [result, setResult] = React.useState<PublicPayCheck | null>(null);
+  const [filter, setFilter] = React.useState("");
+  const history = useApiQuery(qk.payChecks(orgId, filter), () =>
+    wrap(async () => client.range.listChecks(orgId, filter ? { overall: filter as PublicPayCheck["overall"], limit: 25 } : { limit: 25 })),
+  );
+
+  React.useEffect(() => {
+    const last = readLast(orgId);
+    if (last) {
+      setLocations(last.locations);
+      setRemote(last.remote);
+      setEmployees(last.employees);
+    }
+  }, [orgId]);
 
   const jurisdictions = rules.data?.jurisdictions ?? [];
   const toggle = (code: string) =>
@@ -61,6 +100,7 @@ function Inner({ orgId, orgSlug }: { orgId: string; orgSlug: string }) {
       employeeCount: Number(employees),
       checkDate,
     };
+    writeLast(orgId, { locations, remote, employees });
     setBusy(true);
     const r = await wrap(async () => client.range.runCheck(orgId, body));
     setBusy(false);
@@ -69,6 +109,7 @@ function Inner({ orgId, orgSlug }: { orgId: string; orgSlug: string }) {
       return;
     }
     setResult(r.data.check);
+    history.reload();
   }
 
   return (
@@ -140,78 +181,75 @@ function Inner({ orgId, orgSlug }: { orgId: string; orgSlug: string }) {
       </Card>
 
       {result ? (
-        <Result check={result} />
+        <CheckResult
+          check={result}
+          footer={
+            <p className="mt-3 text-sm">
+              Stored as{" "}
+              <Link className="underline" href={`/orgs/${orgSlug}/pay-checks/${result.id}`}>
+                {result.id}
+              </Link>
+              : open it to see the evidence or re-check it later.
+            </p>
+          }
+        />
       ) : (
         <div className="flex flex-col items-center py-8 text-center text-sm text-muted-foreground">
           <ClipboardCheck className="mb-3 h-8 w-8 text-primary" />
           Nothing checked yet.
         </div>
       )}
-    </div>
-  );
-}
 
-function Result({ check }: { check: PublicPayCheck }) {
-  const e = check.extracted;
-  return (
-    <Card>
-      <CardHeader className="flex flex-row items-start justify-between gap-3">
-        <div>
-          <CardTitle className="text-base">{check.title || "Result"}</CardTitle>
-          <CardDescription>
-            Pay found: <span className="font-medium">{describePay(e.pay)}</span>
-            {e.pay.text ? <> (&quot;{e.pay.text}&quot;)</> : null}
-            {e.vaguePay.length ? <> · vague wording: {e.vaguePay.join(", ")}</> : null}
-            <br />
-            Benefits found: {e.benefits.length ? e.benefits.map((b) => BENEFIT_CATEGORY_LABELS[b]).join(", ") : "none"}
-            {e.benefitFiller.length ? <> · filler: {e.benefitFiller.join(", ")}</> : null}
-            <br />
-            Checked for {check.checkDate}, {check.employeeCount} employees, rules {check.rulesVersion}.
-          </CardDescription>
-        </div>
-        <VerdictBadge verdict={check.overall} />
-      </CardHeader>
-      <CardContent>
-        <Table>
-          <THead>
-            <TR>
-              <TH>Jurisdiction</TH>
-              <TH>Verdict</TH>
-              <TH>Deciding rule</TH>
-              <TH>Source</TH>
-            </TR>
-          </THead>
-          <TBody>
-            {check.results.map((r) => (
-              <TR key={r.location}>
-                <TD className="align-top">
-                  <div className="font-medium">{r.jurisdictionName}</div>
-                  <div className="text-xs text-muted-foreground">
-                    {r.location}
-                    {r.via === "remote" ? " · via remote" : ""}
-                  </div>
-                </TD>
-                <TD className="align-top">
-                  <VerdictBadge verdict={r.verdict} />
-                </TD>
-                <TD className="align-top max-w-lg text-sm">
-                  {r.deciding ? (
-                    <>
-                      <div className="font-medium">{RANGE_REQUIREMENT_LABELS[r.deciding.requirement]}</div>
-                      <div className="text-xs text-muted-foreground">{r.deciding.explanation}</div>
-                    </>
-                  ) : (
-                    "—"
-                  )}
-                </TD>
-                <TD className="align-top">
-                  <Citation citation={r.citation} sourceUrl={r.sourceUrl} />
-                </TD>
-              </TR>
+      <Card>
+        <CardHeader className="flex flex-row items-center justify-between gap-3">
+          <CardTitle className="text-base">Check history</CardTitle>
+          <select aria-label="Filter by verdict" className="h-8 rounded-md border bg-background px-2 text-sm" value={filter} onChange={(e) => setFilter(e.target.value)}>
+            <option value="">Every verdict</option>
+            {RANGE_VERDICTS.map((v) => (
+              <option key={v} value={v}>{RANGE_VERDICT_LABELS[v]}</option>
             ))}
-          </TBody>
-        </Table>
-      </CardContent>
-    </Card>
+          </select>
+        </CardHeader>
+        <CardContent>
+          {history.loading ? (
+            <p className="text-sm text-muted-foreground">Loading…</p>
+          ) : history.error ? (
+            <p className="text-sm text-destructive">{history.error.message}</p>
+          ) : (history.data?.checks.length ?? 0) === 0 ? (
+            <p className="text-sm text-muted-foreground">No stored checks yet.</p>
+          ) : (
+            <Table>
+              <THead>
+                <TR>
+                  <TH>Checked</TH>
+                  <TH>Ad</TH>
+                  <TH>Pay</TH>
+                  <TH>Where</TH>
+                  <TH>Verdict</TH>
+                </TR>
+              </THead>
+              <TBody>
+                {history.data!.checks.map((c) => (
+                  <TR key={c.id}>
+                    <TD className="text-xs">{c.checkedAt.slice(0, 16).replace("T", " ")}</TD>
+                    <TD>
+                      <Link className="underline" href={`/orgs/${orgSlug}/pay-checks/${c.id}`}>
+                        {c.title || `ad ${c.adSha256.slice(0, 8)}`}
+                      </Link>
+                      {c.recheckedFrom ? <span className="text-xs text-muted-foreground"> · re-check</span> : null}
+                    </TD>
+                    <TD className="text-xs">{c.payText}</TD>
+                    <TD className="text-xs">{[...c.locations, ...(c.remote !== "none" ? [RANGE_REMOTE_LABELS[c.remote]] : [])].join(", ")}</TD>
+                    <TD>
+                      <VerdictBadge verdict={c.overall} />
+                    </TD>
+                  </TR>
+                ))}
+              </TBody>
+            </Table>
+          )}
+        </CardContent>
+      </Card>
+    </div>
   );
 }
