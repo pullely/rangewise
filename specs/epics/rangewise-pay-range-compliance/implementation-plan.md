@@ -100,7 +100,7 @@ first audited write works on D1:
   and leaves the original row unchanged
 - a per-location ad gives Colorado and New York their own ranges
 
-## RW3 — the weekly scan and alerts
+## RW3 — the weekly scan and alerts ✅
 
 - Migration `220_range_watch` (saved ads, scan runs, alert ledger).
 - A saved ad is either pasted text or a public careers-page URL. URLs are

@@ -8,7 +8,7 @@ the code departed from `design.md`.
 | RW0 — the spec | ✅ merged 85b65da; docs pushed with `orun spec push` | #9 |
 | RW1 — the jurisdiction rules table and a manual check | ✅ merged e3ff164; `main` deploy run 35922168119 green 66/66; stage smoke green (org 201, pass, fail on `range_bounded` citing C.R.S. § 8-5-201(2), NY `not_applicable` at 3, non-member 404); prod `/health` 200, routes 401, `DEBUG_DELIVERY` false | #10 (RW-2) |
 | RW2 — the deterministic check engine | ✅ merged c33ec46; `main` deploy run 36649786592 green 59/59 (attempt 2: `config-worker · prod · Verify deploy` hit a control-plane connection reset while claiming its job, trap 31; cancel + `--failed` rerun); labelled set 73 snippets / 86 verdicts at 100%; stage smoke 31/31 (stored check with evidence spans and `US-CO@1`, history, re-check of an edited ad as a new row with the original unchanged, per-location CO/NY ranges, 9/9 labelled snippets pasted live, cross-org 404); prod `/health` 200, new routes 401, unknown 404, `DEBUG_DELIVERY` false | #11 (RW-3) |
-| RW3 — the weekly scan and alerts | in review | RW-4 |
+| RW3 — the weekly scan and alerts | ✅ merged 435bd2e; `main` deploy run 36653677271 green 31/31 on attempt 1 (range-worker, notifications-worker, events-worker, api-edge, db-migrate `220_range_watch`, console; stage and prod); cron `0 6 * * *` registered on both workers (Cloudflare schedules API); stage smoke 61/61 after the final deploy; prod 17/17 | #12 (RW-4) |
 
 ## Departures from the design
 
@@ -139,4 +139,36 @@ the code departed from `design.md`.
   (`rwa_` subject prefix), api-edge (the routes) and the console, not all 13
   workers as RW1 and RW2 did. No policy actions were added: `range.read` and
   `range.write` cover the new routes.
+
+## Shipped — end-to-end proof (runbook trap 41), 2026-09-30
+
+Run on stage after RW3's deploy run finished, from a fresh sign-in (stage
+`DEBUG_DELIVERY`) and a fresh organization (201). 61 of 61 checks passed:
+
+- **RW1:** 9 verified rules; an ad with a bounded range, benefits and how and
+  when to apply passes Colorado and New York; "up to $60,000" remote in the US
+  fails Colorado with `range_bounded`, citing C.R.S. § 8-5-201(2); New York is
+  `not_applicable` at headcount 3; bad input answers 422.
+- **RW2:** a stored check reads back with evidence spans that match the ad
+  text and `US-CO@1` among its rules; the history lists and filters it; a
+  re-check of an edited ad is a new row (pass → fail on Colorado and New York)
+  and the original is unchanged; a per-location ad gives Colorado $105,000–
+  $130,000 and New York $120,000–$150,000; 9 of 9 labelled snippets pasted
+  live get their labelled verdicts.
+- **RW3:** a saved ad swept twice the same day is re-checked once; after an
+  edit makes it worse, the sweep alerts once and notifications-worker ACCEPTS
+  the email (delivery is out of scope, trap 27); the next sweep scans nothing;
+  `https://127.0.0.1/`, `https://localhost/`, `https://169.254.169.254/`,
+  `https://10.0.0.8/`, `http://…`, port 8443 and `[::1]` are refused with 422;
+  a public URL (`https://example.com/`) is fetched and checked; the compliance
+  report lists every saved ad's latest verdict as JSON and as CSV.
+- **Cross-org:** a second signed-in user gets 404 on all 11 org routes.
+- **Prod:** `/health` 200; all 12 range routes answer 401 without a session;
+  unknown routes answer 404; `login/start` hands back no code
+  (`DEBUG_DELIVERY` false).
+
+Not proven on stage, and why: a rules-version change (no rules migration can
+be staged on demand) is proven in `tests/range-worker` against a real
+`US-CO@2` row; the 06:00 UTC tick itself is proven by its registration and by
+the same sweep code driven through `POST …/watched-ads/sweep`.
 
