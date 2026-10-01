@@ -12,7 +12,7 @@ export const CONSOLE_TITLE = `${PRODUCT_NAME} Console`;
 
 /** Marketing-facing product description (document metadata). */
 export const PRODUCT_DESCRIPTION =
-  "Next-gen control plane for your projects, environments, and entitlements.";
+  "Check job ads for missing or non-compliant salary ranges in every US state and EU country before they go live";
 
 /** The Cloudflare account's workers.dev subdomain serving this instance. */
 export const WORKERS_DEV_SUBDOMAIN = "nexo-7be";

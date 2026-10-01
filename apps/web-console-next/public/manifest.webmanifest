@@ -1,11 +1,19 @@
 {
   "name": "Rangewise Console",
   "short_name": "Rangewise",
-  "description": "Control plane for your projects, environments, and entitlements.",
+  "description": "Check job ads for missing or non-compliant salary ranges in every US state and EU country before they go live",
   "start_url": "/orgs",
   "scope": "/",
   "display": "standalone",
-  "background_color": "#09090b",
-  "theme_color": "#09090b",
-  "orientation": "portrait-primary"
+  "background_color": "#0a0d15",
+  "theme_color": "#0a0d15",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ]
 }
